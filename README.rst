@@ -11,7 +11,7 @@ vector encoders that map vector data to either:
   - sparse codes in medium to high dimensional space, useful for semantic
     indexing, denoising and compression
 
-In both cases, care is taken to preserve nearest neighboors relationships.
+In both cases, care is taken to preserve nearest neighbors relationships.
 
 .. _theano: http://deeplearning.net/software/theano/
 .. _pynnet: http://code.google.com/p/pynnet/
