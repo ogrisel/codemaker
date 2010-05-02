@@ -6,12 +6,11 @@ Python utilities based on theano_ and pynnet_ and scikits.learn_ to learn
 vector encoders that map vector data to either:
 
   - dense codes in low dimensional space, useful for semantic mapping and
-    visualization
+    visualization by trying to preserve the local structure
 
   - sparse codes in medium to high dimensional space, useful for semantic
     indexing, denoising and compression
 
-In both cases, care is taken to preserve nearest neighbors relationships.
 
 .. _theano: http://deeplearning.net/software/theano/
 .. _pynnet: http://code.google.com/p/pynnet/
