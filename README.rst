@@ -24,12 +24,17 @@ This is experimental code. Nothing is expected to work as advertised yet :)
 
 Implemented:
 
-  - sparse encoding using an existing dictionary (see `codemaker.sparse`)
+  - deterministic (optimal) sparse encoding using an existing dictionary
+    and coordinate descent (see `codemaker.sparse`)
+
+Work in progress:
+
+  - stochastic neighbor embedding in low dim space using autoencoders
 
 Planned:
 
-  - dictionary learning using sparsity inducing autoencoders
-  - stochastic neighbor embedding in low dim space using autoencoders
+  - stochastic dictionary learning and approximate sparse coding
+    using sparsity inducing autoencoders (see Ranzanto 2007)
 
 
 Licensing
