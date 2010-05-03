@@ -25,7 +25,7 @@ This is experimental code. Nothing is expected to work as advertised yet :)
 Implemented:
 
   - deterministic (optimal) sparse encoding using an existing dictionary
-    and coordinate descent (see `codemaker.sparse`)
+    and coordinate descent (see ``codemaker.sparse``)
 
 Work in progress:
 
@@ -48,7 +48,7 @@ Hacking
 
 Download the source distrib of the afore mentionned dependencies, untar them in
 the parent folder of ``codemaker``, build scikits.learn_ in local mode with
-`python setup build_ext -i` and setup the dev environment with::
+``python setup build_ext -i`` and setup the dev environment with::
 
   $ . ./activate.sh
   
