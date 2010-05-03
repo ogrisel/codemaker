@@ -34,7 +34,7 @@ Work in progress:
 Planned:
 
   - stochastic dictionary learning and approximate sparse coding
-    using sparsity inducing autoencoders (see Ranzanto 2007)
+    using sparsity inducing autoencoders (see Ranzato 2007)
 
 
 Licensing
