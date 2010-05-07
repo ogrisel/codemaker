@@ -20,7 +20,7 @@ def test_random_sparsecode():
     D = x[:n_basis].T
 
     # encode all samples according to D
-    encoded = sparse_encode(D, x, alpha=10)
+    encoded = sparse_encode(D, x)
     assert_equal(encoded.shape, (n_samples, n_basis))
 
     # check that the first sample are encoded using a single component (trivial
@@ -37,6 +37,6 @@ def test_random_sparsecode():
 
     # check that the remaining samples could also be encoding with a sparse code
     avg_density = (encoded[n_basis:] != 0).sum(axis=1).mean()
-    assert_almost_equal(avg_density, 3.6, 0.1)
+    assert_almost_equal(avg_density, 2.43, 0.1)
 
 
