@@ -27,8 +27,8 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     ae = Autoencoder(data.shape[1], target_dim, tied=False, noise=0.0)
     ae.build(T.fmatrix('x'))
 
-    # symbolic expression of an estimator of the divergence between similarities
-    # in input and output spaces
+    # symbolic expression of an estimator of the divergence between
+    # similarities in input and output spaces
     dx = T.sum((ae.input[:-1] - ae.input[1:]) ** 2, axis=1)
     dy = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
     embedding_cost = T.sum(abs(dx/dx.mean() - dy/dy.mean())

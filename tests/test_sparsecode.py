@@ -36,7 +36,7 @@ def test_random_sparsecode():
                 assert_almost_equal(encoded[i][j], 0.0, 0.01)
 
     # check that the remaining samples could also be encoding with a sparse code
-    avg_density = (encoded[n_basis:] != 0).sum(axis=1).mean()
-    assert_almost_equal(avg_density, 2.43, 0.1)
+    avg_nb_nonzeros = (encoded[n_basis:] != 0).sum(axis=1).mean()
+    assert_almost_equal(avg_nb_nonzeros, 2.43, 0.1)
 
 
