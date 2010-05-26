@@ -26,14 +26,14 @@ def test_random_sparsecode():
     # check that the first sample are encoded using a single component (trivial
     # sparse code)
     avg_density = (encoded[:n_basis] != 0).sum(axis=1).mean()
-    assert_almost_equal(avg_density, 1.0, 0.01)
+    assert_almost_equal(avg_density, 1.0, 2)
 
     for i in xrange(n_basis):
         for j in xrange(n_basis):
             if i == j:
-                assert_almost_equal(encoded[i][j], 1.0, 0.05)
+                assert_almost_equal(encoded[i][j], 1.0, 1)
             else:
-                assert_almost_equal(encoded[i][j], 0.0, 0.01)
+                assert_almost_equal(encoded[i][j], 0.0, 1)
 
     # check that the remaining samples could also be encoding with a sparse code
     avg_nb_nonzeros = (encoded[n_basis:] != 0).sum(axis=1).mean()
