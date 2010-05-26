@@ -2,7 +2,7 @@ import numpy as np
 from scikits.learn.glm.coordinate_descent import ElasticNetPath
 from scikits.learn.glm.coordinate_descent import LassoPath
 
-def sparse_encode(D, data, callback=None):
+def sparse_encode(D, data, callback=None, rho=1.0, n_alphas=5, eps=1e-2):
     """Given dictionary D, find sparse encoding of vectors in data
 
     Encoding is performed using coordinate descent of the elastic net
@@ -15,7 +15,11 @@ def sparse_encode(D, data, callback=None):
 
     for i, code in enumerate(data):
         # TODO: parallelize me with multiprocessing!
-        clf = LassoPath(n_alphas=5, eps=1e-2).fit(D, code)
+        if rho == 1.0:
+            clf = LassoPath(n_alphas=n_alphas, eps=eps).fit(D, code)
+        else:
+            clf = ElasticNetPath(
+                n_alphas=n_alphas, eps=eps, rho=rho).fit(D, code)
         encoded[i][:] = clf.coef_
         if callback is not None:
             callback(i)
