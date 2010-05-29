@@ -1,5 +1,4 @@
 from codemaker.sparse import sparse_encode
-from codemaker.evaluation import find_nearest
 import numpy as np
 from nose.tools import *
 

@@ -1,5 +1,5 @@
 from codemaker.embedding import compute_embedding
-from codemaker.evaluation import find_nearest
+from codemaker.evaluation import Neighbors
 import numpy as np
 from nose.tools import *
 from scikits.learn import datasets
@@ -10,6 +10,7 @@ def test_compute_embedding():
     digits = datasets.load_digits()
     data = digits.data
     n_samples, n_features = data.shape
+    print data.shape
 
     # right now this does not work for very low dim (need to stack autoencoders
     # along with the local structure preserving penalty to objective function)
@@ -23,16 +24,17 @@ def test_compute_embedding():
 
     # compare nearest neighbors
     ref_idx = 41
+    data_neighbors = Neighbors(k=50).fit(data, digits.target)
+    code_neighbors = Neighbors(k=50).fit(code, digits.target)
 
-    knn_data = [idx for idx, dist in find_nearest(data[ref_idx], data, n=50)]
-    knn_code = [idx for idx, dist in find_nearest(code[ref_idx], code, n=50)]
+    _, knn_data = data_neighbors.kneighbors(data[ref_idx])
+    _, knn_code = code_neighbors.kneighbors(code[ref_idx])
 
-    print find_nearest(data[ref_idx], data)
+    print knn_data
     print [digits.target[idx] for idx in knn_data]
 
-    print find_nearest(code[ref_idx], code)
+    print knn_code
     print [digits.target[idx] for idx in knn_code]
 
-    assert_equals(len(set(knn_data) & set(knn_code)), 27)
-
+    assert_equals(len(set(knn_data) & set(knn_code)), 29)
 
