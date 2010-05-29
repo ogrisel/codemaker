@@ -31,12 +31,12 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     # similarities in input and output spaces
     dx = T.sum((ae.input[:-1] - ae.input[1:]) ** 2, axis=1)
     dy = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
-    embedding_cost = T.sum(abs(dx/dx.mean() - dy/dy.mean())
-                                   * dx.mean() / dx)
+    avg_dx, avg_dy = dx.mean(), dy.mean()
+    embedding_cost = T.sum(abs(dx/avg_dx - dy/avg_dy))
 
     # compound cost mix the regular autoencoder cost along with the embedding
     # cost
-    cost = ae.cost + 20. * embedding_cost
+    cost = ae.cost + 2. * embedding_cost
 
     train = theano.function(
         [ae.input], cost,
@@ -57,8 +57,4 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
         print "epoch %d: err: %0.3f" % (e, err.mean())
 
     return encode(data), encode
-
-
-
-
 
