@@ -24,7 +24,7 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     n_samples, n_features = data.shape
 
     # build a traditional autoencoder with sigmoid non linearities
-    ae = Autoencoder(data.shape[1], target_dim, tied=False, noise=0.0)
+    ae = Autoencoder(data.shape[1], target_dim, tied=True, noise=0.0)
     ae.build(T.fmatrix('x'))
 
     # symbolic expression of an estimator of the divergence between
