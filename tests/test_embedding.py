@@ -21,8 +21,8 @@ def test_compute_embedding(check_asserts=True):
     low_dim = 2
 
     # compute an embedding of the data
-    code, encoder = compute_embedding(data, low_dim, epochs=50,
-                                      learning_rate=0.001)
+    code, encoder = compute_embedding(data, low_dim, epochs=1000, batch_size=10,
+                                      learning_rate=0.0001)
     assert_equal(code.shape, (n_samples, low_dim))
 
     # compare nearest neighbors
@@ -40,7 +40,14 @@ if __name__ == "__main__":
     score, digits, code, encoder = test_compute_embedding(check_asserts=False)
     print "match score: ", score
 
-    clf = Neighbors(k=5).fit(code, digits.target)
+    knn_data = Neighbors(k=5).fit(digits.data, digits.target)
+    accuracy_data = (knn_data.predict(digits.data) == digits.target).mean()
+    print "accuracy of knn on data:", accuracy_data
+
+    knn_code = Neighbors(k=5).fit(code, digits.target)
+    accuracy_code = (knn_code.predict(code) == digits.target).mean()
+    print "accuracy of knn on code:", accuracy_code
+    print "ratio knn code / knn data:", accuracy_code / accuracy_data
 
     # Plot the decision boundary. For that, we will asign a color to each
     # point in the mesh [x_min, m_max]x[y_min, y_max].
@@ -48,7 +55,7 @@ if __name__ == "__main__":
     y_min, y_max = code[:, 1].min() - .1, code[:, 1].max() + .1
     h = .02 # step size
     xx, yy = np.meshgrid(np.arange(x_min, x_max, h), np.arange(y_min, y_max, h))
-    Z = clf.predict(np.c_[xx.ravel(), yy.ravel()])
+    Z = knn_code.predict(np.c_[xx.ravel(), yy.ravel()])
 
     # plot the prediction results a color plot
     Z = Z.reshape(xx.shape)
