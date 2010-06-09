@@ -66,6 +66,9 @@ Run the tests with the nosetests_ command.
 Examples
 ========
 
-TODO
+TODO!
 
+In the mean time have a look at the tests_ folder.
+
+.. _tests: http://github.com/ogrisel/codemaker/tree/master/tests/
 
