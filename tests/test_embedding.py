@@ -21,14 +21,15 @@ def test_compute_embedding(check_asserts=True):
     low_dim = 2
 
     # compute an embedding of the data
-    code, encoder = compute_embedding(data, low_dim, epochs=1000, batch_size=10,
-                                      learning_rate=0.0001)
+    code, encoder = compute_embedding(data, low_dim, epochs=5,
+                                      batch_size=10, learning_rate=0.0001)
     assert_equal(code.shape, (n_samples, low_dim))
 
     # compare nearest neighbors
     score = local_match(data, code, query_size=50, ratio=0.1, seed=0)
     if check_asserts:
-        assert_almost_equal(score, 0.25, 2)
+        # fast test with few epochs stops before actual convergence
+        assert_almost_equal(score, 0.14, 2)
 
     return score, digits, code, encoder
 
