@@ -1,6 +1,8 @@
 import numpy as np
-from scikits.learn.glm.coordinate_descent import ElasticNetPath
-from scikits.learn.glm.coordinate_descent import LassoPath
+from scikits.learn.glm import ElasticNetPath
+from scikits.learn.glm import LassoPath
+# TODO: implement a variant using LassoLARS when ready
+
 
 def sparse_encode(D, data, callback=None, rho=1.0, n_alphas=5, eps=1e-2):
     """Given dictionary D, find sparse encoding of vectors in data
