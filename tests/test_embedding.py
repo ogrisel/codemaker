@@ -6,7 +6,7 @@ from scikits.learn import datasets
 import random
 
 
-def test_compute_embedding(check_asserts=True):
+def test_compute_embedding(check_asserts=True, **kw):
     np.random.seed(0)
     random.seed(0)
 
@@ -21,8 +21,7 @@ def test_compute_embedding(check_asserts=True):
     low_dim = 2
 
     # compute an embedding of the data
-    code, encoder = compute_embedding(data, low_dim, epochs=1000, batch_size=10,
-                                      learning_rate=0.0001)
+    code, encoder = compute_embedding(data, low_dim, **kw)
     assert_equal(code.shape, (n_samples, low_dim))
 
     # compare nearest neighbors
@@ -37,7 +36,8 @@ if __name__ == "__main__":
     import matplotlib
     import pylab as pl
 
-    score, digits, code, encoder = test_compute_embedding(check_asserts=False)
+    score, digits, code, encoder = test_compute_embedding(
+        check_asserts=False, epochs=5000, learning_rate=0.0001, batch_size=5)
     print "match score: ", score
 
     knn_data = Neighbors(k=5).fit(digits.data, digits.target)
@@ -68,10 +68,13 @@ if __name__ == "__main__":
 #    for c_i, i in zip(code, digits.target):
 #        codes_by_digits[i].append(c_i)
 #
+#    colors = pl.cm.Paired(np.arange(10))
+#    handles = []
 #    for i, c_i in enumerate(codes_by_digits):
 #        c_i = np.asarray(c_i)
-#        pl.scatter(c_i[:,0], c_i[:,1], c=pl.cm.Paired(i), label=str(i))
-#    pl.legend(loc="upper left")
+#        color = colors[i] * np.ones((c_i.shape[0], 4))
+#        handles.append(pl.scatter(c_i[:,0], c_i[:,1], c=color))
+#    pl.legend(handles, [str(i) for i in range(10)])
 
     pl.axis('tight')
     pl.title('KNN classification in the 2D code space')

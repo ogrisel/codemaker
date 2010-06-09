@@ -9,8 +9,8 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-def compute_embedding(data, target_dim, epochs=100, batch_size=100,
-                      learning_rate=0.01, seed=None):
+def compute_embedding(data, target_dim, epochs=10, batch_size=100,
+                      stacked_ae=2, learning_rate=0.001, seed=None):
     """Learn an embedding of data into a vector space of target_dim
 
     Current implementation: only minize the reconstruction error of a simple
@@ -35,11 +35,15 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     ae_in = Autoencoder(n_features, n_features / 2, tied=True, noise=0.0)
     ae_in.build(T.fmatrix('ae_in'))
 
+    ae_hid = Autoencoder(n_features / 2, n_features / 2, tied=True, noise=0.0)
+    ae_hid.build(ae_in.output)
+
     ae_out = Autoencoder(n_features / 2, target_dim, tied=True, noise=0.0)
-    ae_out.build(ae_in.output)
+    ae_out.build(ae_hid.output)
 
     # build the forward encoder using the forward layers of the encoders
-    enc = NNet([ae_in.layers[1], ae_out.layers[1]], errors.mse)
+    enc = NNet([ae_in.layers[1], ae_hid.layers[1], ae_out.layers[1]],
+               errors.mse)
     enc.build(T.fmatrix('enc_in'), T.fvector('enc_target'))
 
     # symbolic expression of an estimator of the divergence between
@@ -47,31 +51,41 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
     dy = T.sum((ae_out.output[:-1] - ae_out.output[1:]) ** 2, axis=1)
     avg_dx, avg_dy = dx.mean(), dy.mean()
-    embedding_cost = T.sum((dx/avg_dx - dy/avg_dy) ** 2
-                           * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
+    embedding_cost = 50. * T.mean((dx/avg_dx - dy/avg_dy) ** 2
+                            * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
+
+    # autoencoder cost
+    ae_cost = 0.05 * (1. * ae_in.cost + 1. * ae_hid.cost + .1 * ae_out.cost)
+
+    # sparsity constraint
+    sparsity_cost = 1e-3 * (T.sum(abs(ae_in.output), axis=1).mean() \
+            + T.sum(abs(ae_hid.output), axis=1).mean())
 
     # compound cost mix the regular autoencoder cost along with the embedding
     # cost
-    cost = 1. * ae_in.cost + .1 * ae_out.cost + 5. * embedding_cost
+    cost = embedding_cost + ae_cost + sparsity_cost
     #cost = 5. * embedding_cost
-    params = ae_in.pre_params + ae_out.pre_params
+
+    params = ae_in.pre_params + ae_hid.pre_params + ae_out.pre_params
     train = theano.function(
-        [ae_in.input], cost, updates=get_updates(params, cost, learning_rate))
+        [ae_in.input], [cost, embedding_cost, ae_cost, sparsity_cost],
+        updates=get_updates(params, cost, learning_rate))
 
     encode = theano.function([enc.input], enc.output)
 
     n_batches = n_samples / batch_size
     for e in xrange(epochs):
+        print "epoch %d" % e
         print "reshuffling data"
         shuffled = data.copy()
         np.random.shuffle(shuffled)
 
         print "training..."
-        err = np.zeros(n_batches)
+        costs = np.zeros((n_batches, 4))
         for b in xrange(n_batches):
             batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
-            err[b] = train(batch_input).mean()
-        print "epoch %d: err: %0.3f" % (e, err.mean())
+            costs[b] = np.asarray(train(batch_input))
+        print "mean costs:", costs.mean(axis=0)
 
     return encode(data), encode
 
