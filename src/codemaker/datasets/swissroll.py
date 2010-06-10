@@ -31,8 +31,8 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=2, seed=0):
     data : an array of shape (n_samples, n_features) embedding the generated
            hyber-swissroll
 
-    t_span : the "time steps" values used for the generation of the individual
-             samples, a linear scale from 0.0 to 1.0
+    manifold : an array of size (n_samples, 2) that contains the unrolled
+               manifold
 
     """
 
@@ -50,31 +50,41 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=2, seed=0):
     rng = np.random.RandomState(seed)
     data[:, 2] = rng.uniform(-1, 1.0, n_samples)
 
+    # copy the manifold data before performing the rotation
+    manifold = np.vstack((t_span * 2 - 1, data[:, 2])).T.copy()
+
     if rotate:
         # rotate the randomly along all axes to avoid trivial orthogonal projections
         # achived by feature selection to recover the original spiral
-        for i in range(1, n_features - 1):
+
+        # WARNING: this is not a real random rotation matrix, the curse of
+        # dimensionality is making the last features very small w.r.t. the first
+        # dims: how to mitigate this? should we normalize / rescale?
+        axis = range(1, n_features - 1)
+        for i in axis:
             rotation = np.identity(n_features)
-            angle = rng.uniform(0, np.pi / 2)
+            angle = rng.normal(np.pi / 4, np.pi / 32)
             c, s = cos(angle), sin(angle)
             rotation[i][i], rotation[i + 1][i + 1] = c, c
             rotation[i][i + 1], rotation[i + 1][i] = s, -s
             data = np.dot(data, rotation)
 
-    return data, t_span
+    return data, manifold
 
 
 if __name__ == "__main__":
     import pylab as pl
 
-    X, y = load(rotate=False)
+    data, manifold = load(rotate=False)
 
     # plot the 2d projection of the spiral
-    pl.scatter(X[:, 0], X[:, 1], c=range(len(y)), cmap=pl.cm.spectral)
+    colors = manifold[:, 0]
+    cmap = pl.cm.spectral
+    pl.scatter(data[:, 0], data[:, 1], c=colors, cmap=cmap)
     pl.show()
 
     # plot the unrolled manifold embedded in the data
-    pl.scatter(y, X[:, 2], c=range(len(y)), cmap=pl.cm.spectral)
+    pl.scatter(manifold[:, 0], manifold[:, 1], c=colors, cmap=cmap)
     pl.show()
 
 
