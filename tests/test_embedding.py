@@ -29,7 +29,7 @@ def test_compute_embedding(check_asserts=True):
     score = local_match(data, code, query_size=50, ratio=0.1, seed=0)
     if check_asserts:
         # fast test with few epochs stops before actual convergence
-        assert_almost_equal(score, 0.14, 2)
+        assert_almost_equal(score, 0.15, 2)
 
     return score, digits, code, encoder
 
