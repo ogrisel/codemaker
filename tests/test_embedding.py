@@ -35,7 +35,6 @@ def test_compute_embedding(check_asserts=True):
 
 
 if __name__ == "__main__":
-    import matplotlib
     import pylab as pl
 
     score, digits, code, encoder = test_compute_embedding(check_asserts=False)
