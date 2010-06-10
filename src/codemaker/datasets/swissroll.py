@@ -6,7 +6,7 @@ from math import sin
 import numpy as np
 
 
-def load(n_samples=1000, n_features=3, rotate=True, n_turns=2, seed=0):
+def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0):
     """Generate spiral curve dataset on the first 2 dims
 
     The third dim is fill uniformly. The remaining dims are left to zeros
@@ -75,16 +75,14 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=2, seed=0):
 if __name__ == "__main__":
     import pylab as pl
 
-    data, manifold = load(rotate=False)
+    data, manifold = load(n_features=4, n_turns=1.5, rotate=True)
 
-    # plot the 2d projection of the spiral
+    # plot the 2d projection of the first two axes
     colors = manifold[:, 0]
-    cmap = pl.cm.spectral
-    pl.scatter(data[:, 0], data[:, 1], c=colors, cmap=cmap)
-    pl.show()
+    pl.subplot(121).scatter(data[:, 0], data[:, 1], c=colors)
 
     # plot the unrolled manifold embedded in the data
-    pl.scatter(manifold[:, 0], manifold[:, 1], c=colors, cmap=cmap)
+    pl.subplot(122).scatter(manifold[:, 0], manifold[:, 1], c=colors)
     pl.show()
 
 
