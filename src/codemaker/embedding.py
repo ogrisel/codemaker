@@ -30,13 +30,14 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
         np.random.seed(seed)
     theano_rng = RandomStreams(seed)
 
+
     # build autoencoders with sigmoid non linearities
-    # TODO: patch pynnet to allow for seeding the autoencoder noise
-    ae_in = Autoencoder(n_features, n_features / 2, tied=True, noise=0.2,
+    hidden_dim = (n_features + target_dim) / 2
+    ae_in = Autoencoder(n_features, hidden_dim, tied=True, noise=0.2,
                         noise_rng=theano_rng)
     ae_in.build(T.fmatrix('ae_in'))
 
-    ae_out = Autoencoder(n_features / 2, target_dim, tied=True, noise=0.1,
+    ae_out = Autoencoder(hidden_dim, target_dim, tied=True, noise=0.1,
                          noise_rng=theano_rng)
     ae_out.build(ae_in.output)
 
@@ -49,13 +50,13 @@ def compute_embedding(data, target_dim, epochs=100, batch_size=100,
     dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
     dy = T.sum((ae_out.output[:-1] - ae_out.output[1:]) ** 2, axis=1)
     avg_dx, avg_dy = dx.mean(), dy.mean()
-    embedding_cost = T.sum((dx/avg_dx - dy/avg_dy) ** 2
+    embedding_cost = T.mean((dx/avg_dx - dy/avg_dy) ** 2
                            * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
 
     # compound cost mix the regular autoencoder cost along with the embedding
     # cost
-    cost = 1. * ae_in.cost + .1 * ae_out.cost + 5. * embedding_cost
-    #cost = 5. * embedding_cost
+    cost = 1. * ae_in.cost + 0.5 * ae_out.cost + 50. * embedding_cost
+    #cost = .5 * embedding_cost
     params = ae_in.pre_params + ae_out.pre_params
     train = theano.function(
         [ae_in.input], cost, updates=get_updates(params, cost, learning_rate))

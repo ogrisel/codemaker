@@ -6,7 +6,8 @@ from math import sin
 import numpy as np
 
 
-def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0):
+def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
+         radius=1.0):
     """Generate spiral curve dataset on the first 2 dims
 
     The third dim is fill uniformly. The remaining dims are left to zeros
@@ -43,7 +44,8 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0):
 
     # generate the 2D spiral data driven by a 1d parameter t
     max_rot = n_turns * 2 * np.pi
-    data[:, 0:2] = np.asarray([[t * cos(t * max_rot), t * sin(t * max_rot)]
+    data[:, 0:2] = np.asarray([[radius * t * cos(t * max_rot),
+                                radius * t * sin(t * max_rot)]
                                for t in t_span])
 
     # fill the third dim with the uniform band of width [-1, 1]
