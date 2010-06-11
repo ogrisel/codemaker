@@ -54,7 +54,9 @@ print "kNN score match manifold/data:", score_manifold_data
 if mdp is not None:
     # unroll the same data with HLLE
     print "Comptuting projection using Hessian LLE model..."
+    start = time.time()
     hlle_code = mdp.nodes.HLLENode(15, output_dim=2)(data)
+    print "done in %ds" % (time.time() - start)
 
     score_hlle_code_data = local_match(
         data, hlle_code, query_size=50, ratio=1, seed=0)
