@@ -27,6 +27,9 @@ data, manifold = swissroll.load(
     radius=1.,
     hole=True,
 )
+score_manifold_data = local_match(
+    data, manifold, query_size=50, ratio=1, seed=0)
+print "kNN score match manifold/data:", score_manifold_data
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
@@ -46,10 +49,6 @@ print "kNN score match code/data:", score_code_data
 score_code_manifold = local_match(
     manifold, code, query_size=50, ratio=1, seed=0)
 print "kNN score match code/manifold:", score_code_manifold
-
-score_manifold_data = local_match(
-    data, manifold, query_size=50, ratio=1, seed=0)
-print "kNN score match manifold/data:", score_manifold_data
 
 if mdp is not None:
     # unroll the same data with HLLE
