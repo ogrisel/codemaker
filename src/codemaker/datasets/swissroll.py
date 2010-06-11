@@ -82,6 +82,8 @@ if __name__ == "__main__":
     # plot the 2d projection of the first two axes
     colors = manifold[:, 0]
     pl.subplot(121).scatter(data[:, 0], data[:, 1], c=colors)
+    # TODO: find a way to make scatter 3D work with the same colors instead of
+    # using an arbitrary 2D projection
 
     # plot the unrolled manifold embedded in the data
     pl.subplot(122).scatter(manifold[:, 0], manifold[:, 1], c=colors)
