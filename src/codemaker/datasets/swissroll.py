@@ -44,9 +44,10 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
     """
 
     assert n_features >= 3
+    rng = np.random.RandomState(seed)
 
     data = np.zeros((n_samples, n_features))
-    t = np.linspace(0, 1, num=n_samples)
+    t = rng.uniform(low=0, high=1, size=n_samples)
 
     # generate the 2D spiral data driven by a 1d parameter t
     max_rot = n_turns * 2 * np.pi
@@ -55,7 +56,6 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
                                for t_i in t])
 
     # fill the third dim with the uniform band of width [-1, 1]
-    rng = np.random.RandomState(seed)
     data[:, 2] = rng.uniform(-1, 1.0, n_samples)
 
     # copy the manifold data before performing the rotation
