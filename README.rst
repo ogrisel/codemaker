@@ -66,9 +66,9 @@ Run the tests with the nosetests_ command.
 Examples
 ========
 
-TODO!
+Sample usage can be found in the examples_ folder. Lower level usage
+patterns can also be found in the tests_ folder.
 
-In the mean time have a look at the tests_ folder.
-
+.. _examples: http://github.com/ogrisel/codemaker/tree/master/examples/
 .. _tests: http://github.com/ogrisel/codemaker/tree/master/tests/
 

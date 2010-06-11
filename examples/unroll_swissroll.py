@@ -48,7 +48,7 @@ pl.subplot(131).scatter(data[:, 0], data[:, 1], c=colors)
 # plot the unrolled manifold embedded in the data
 pl.subplot(132).scatter(manifold[:, 0], manifold[:, 1], c=colors)
 
-# plot the learned unrolled 2D embedding
+# plot the learned unrolled 2D embedding (not working yet)
 pl.subplot(133).scatter(code[:, 0], code[:, 1], c=colors)
 pl.show()
 
