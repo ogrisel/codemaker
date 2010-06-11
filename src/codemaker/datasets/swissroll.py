@@ -7,7 +7,7 @@ import numpy as np
 
 
 def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
-         radius=1.0):
+         radius=1.0, hole=False):
     """Generate spiral curve dataset on the first 2 dims
 
     The third dim is fill uniformly. The remaining dims are left to zeros
@@ -22,9 +22,15 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
     n_samples : number of sample to generate
 
     n_features : total number of dimension including the first two that include
-                 the actual spiral data
+                 the actual spiral data (when not rotated)
 
     n_turns : number of rotations (times 2 pi) for the spiral manifold
+
+    rotate : boolean flag to rotate randomly the spiral iteratively on all
+             dimensions
+
+    hole : boolean flag to dig a rectangular hole in the middle of the roll
+           band
 
     Returns
     -------
@@ -40,20 +46,26 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
     assert n_features >= 3
 
     data = np.zeros((n_samples, n_features))
-    t_span = np.linspace(0, 1, num=n_samples)
+    t = np.linspace(0, 1, num=n_samples)
 
     # generate the 2D spiral data driven by a 1d parameter t
     max_rot = n_turns * 2 * np.pi
-    data[:, 0:2] = np.asarray([[radius * t * cos(t * max_rot),
-                                radius * t * sin(t * max_rot)]
-                               for t in t_span])
+    data[:, 0:2] = np.asarray([[radius * t_i * cos(t_i * max_rot),
+                                radius * t_i * sin(t_i * max_rot)]
+                               for t_i in t])
 
     # fill the third dim with the uniform band of width [-1, 1]
     rng = np.random.RandomState(seed)
     data[:, 2] = rng.uniform(-1, 1.0, n_samples)
 
     # copy the manifold data before performing the rotation
-    manifold = np.vstack((t_span * 2 - 1, data[:, 2])).T.copy()
+    manifold = np.vstack((t * 2 - 1, data[:, 2])).T.copy()
+
+    if hole:
+        z = data[:, 2]
+        indices = np.where(((0.3 > t) | (0.7 < t)) | ((-0.3 > z) | (0.3 < z)))
+        data = data[indices]
+        manifold = manifold[indices]
 
     if rotate:
         # rotate the randomly along all axes to avoid trivial orthogonal projections
@@ -76,8 +88,9 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
 
 if __name__ == "__main__":
     import pylab as pl
+    pl.clf()
 
-    data, manifold = load(n_features=4, n_turns=1.5, rotate=True)
+    data, manifold = load(n_features=4, n_turns=1.5, rotate=True, hole=True)
 
     # plot the 2d projection of the first two axes
     colors = manifold[:, 0]
