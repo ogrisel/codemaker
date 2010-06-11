@@ -14,7 +14,7 @@ except ImportError:
 
 pl.clf()
 
-n_features = 4
+n_features = 30
 n_samples = 1000
 
 print "Generating embedded swissroll with n_features=%d and n_samples=%d" % (

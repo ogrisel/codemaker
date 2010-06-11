@@ -51,7 +51,7 @@ the parent folder of ``codemaker``, build scikits.learn_ in local mode with
 ``python setup build_ext -i`` and setup the dev environment with::
 
   $ . ./activate.sh
-  
+
 You should now be able to fire you favorite python shell and import
 the `codemaker` package::
 
@@ -70,5 +70,15 @@ Sample usage can be found in the examples_ folder. Lower level usage
 patterns can also be found in the tests_ folder.
 
 .. _examples: http://github.com/ogrisel/codemaker/tree/master/examples/
+.. _swissroll: http://github.com/ogrisel/codemaker/tree/master/examples/unroll_swissroll.py
 .. _tests: http://github.com/ogrisel/codemaker/tree/master/tests/
+
+.. figure:: http://github.com/ogrisel/codemaker/raw/master/examples/unrolling_the_swissroll.png
+   :scale: 100 %
+   :alt: Plot of projection and manifold extraction of the swissroll dataset
+
+   Plot showing the results of the swissroll_ example
+
+   Failed attempt at using the ``codemaker``s embedding utility to extract a 2D
+   manifold from a toy dataset.
 
