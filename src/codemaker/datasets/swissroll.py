@@ -8,7 +8,7 @@ import numpy as np
 
 def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
          radius=1.0, hole=False):
-    """Generate spiral curve dataset on the first 2 dims
+    """Generate a single spiral band dataset on the first 2 dims
 
     The third dim is fill uniformly. The remaining dims are left to zeros
     (before random rotation).
@@ -41,13 +41,16 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
     manifold : an array of size (n_samples, 2) that contains the unrolled
                manifold
 
+    NB: if hole is True, the samples in the hole are removed hence the
+    dimensions of the results will be smaller that n_samples
+
     """
 
     assert n_features >= 3
     rng = np.random.RandomState(seed)
 
-    data = np.zeros((n_samples, n_features))
     t = rng.uniform(low=0, high=1, size=n_samples)
+    data = np.zeros((n_samples, n_features))
 
     # generate the 2D spiral data driven by a 1d parameter t
     max_rot = n_turns * 2 * np.pi
@@ -67,22 +70,30 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
         manifold = manifold[indices]
 
     if rotate:
-        # rotate the randomly along all axes to avoid trivial orthogonal projections
-        # achived by feature selection to recover the original spiral
-
-        # WARNING: this is not a real random rotation matrix, the curse of
-        # dimensionality is making the last features very small w.r.t. the first
-        # dims: how to mitigate this? should we normalize / rescale?
-        axis = range(1, n_features - 1)
-        for i in axis:
-            rotation = np.identity(n_features)
-            angle = rng.normal(np.pi / 4, np.pi / 32)
-            c, s = cos(angle), sin(angle)
-            rotation[i][i], rotation[i + 1][i + 1] = c, c
-            rotation[i][i + 1], rotation[i + 1][i] = s, -s
-            data = np.dot(data, rotation)
-
+        data = random_rotate(data, rng)
     return data, manifold
+
+
+def random_rotate(data, rng=None):
+    """rotate the randomly along all axes"""
+    if rng is None:
+        rng = np.random.RandomState()
+
+    n_samples, n_features = data.shape
+
+    # WARNING: this is not a real random rotation matrix, the curse of
+    # dimensionality is making the last features very small w.r.t. the first
+    # dims: how to mitigate this? should we normalize / rescale?
+    axis = range(0, n_features - 1)
+    for i in axis:
+        rotation = np.identity(n_features)
+        angle = rng.normal(np.pi / 4, np.pi / 32)
+        c, s = cos(angle), sin(angle)
+        rotation[i][i], rotation[i + 1][i + 1] = c, c
+        rotation[i][i + 1], rotation[i + 1][i] = s, -s
+        data = np.dot(data, rotation)
+
+    return data
 
 
 if __name__ == "__main__":
