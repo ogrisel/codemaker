@@ -68,9 +68,8 @@ def load(n_samples=10000, n_features=10, n_manifolds=10, seed=0):
     data = random_rotate(np.vstack(data), rng)
 
     t_without_holes = np.hstack([m[:, 0] for m in manifolds])
-    perm = rng.permutation(data.shape[0])
 
-    return data[perm], manifolds, t_without_holes[perm]
+    return data, manifolds, t_without_holes
 
 
 if __name__ == "__main__":

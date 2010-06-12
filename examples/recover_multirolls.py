@@ -13,6 +13,7 @@ except ImportError:
     mdp = None
 
 pl.clf()
+np.random.seed(0)
 
 n_features = 10
 n_samples = 3000
@@ -26,8 +27,16 @@ data, manifolds, colors = multirolls.load(
     n_samples=n_samples,
     n_manifolds=n_manifolds,
 )
-score = local_match(data, np.vstack(manifolds), query_size=50, ratio=1, seed=0)
+
+# compute a baseline evaluation of the manifolds (ground truth)
+stacked_manifolds = np.vstack([m + [10 * i, 0]
+                               for i, m in enumerate(manifolds)])
+score = local_match(data, stacked_manifolds, query_size=50, ratio=1, seed=0)
 print "Average kNN score match manifolds/data:", score
+
+# reshuffle the data since stochastic gradient descent assumes I.I.D. samples
+perm = np.random.permutation(data.shape[0])
+data, colors = data[perm], colors[perm]
 
 # build model to extract the manifolds and learn a mapping / encoder to be able
 # to reproduce this on test data
