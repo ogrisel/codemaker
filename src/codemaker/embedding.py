@@ -67,7 +67,6 @@ class SDAEmbedder(object):
 
         n_batches = n_samples / batch_size
         for i, trainer in enumerate(self.pre_trainers):
-            print "pre-training layer %d" % i
             for e in xrange(epochs):
                 # reshuffling data to enforce I.I.D. assumption
                 shuffled = data.copy()
@@ -78,7 +77,9 @@ class SDAEmbedder(object):
                     batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
                     err[b] = trainer(batch_input).mean()
                 if e % checkpoint == 0:
-                    print "epoch %d: err: %0.3f" % (e, err.mean())
+                    print "layer [%d/%d], epoch [%03d/%03d]: err: %0.3f" % (
+                        i + 1, len(self.pre_trainers), e + 1, n_batches,
+                        err.mean())
 
     def get_ae_cost(self, ae):
         cost = ae.cost
