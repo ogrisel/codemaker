@@ -60,7 +60,7 @@ class SDAEmbedder(object):
         self.encode = theano.function([self.encoder.input], self.encoder.output)
 
     def pre_train(self, data, batch_size=50, epochs=100, checkpoint=10,
-                  patience=50, tolerance=1e-5):
+                  patience=20, tolerance=1e-4):
         """Iteratively apply SGD to each autoencoder"""
         data = np.atleast_2d(data)
         data = np.asanyarray(data, dtype=theano.config.floatX)
@@ -93,8 +93,6 @@ class SDAEmbedder(object):
                         print "layer [%d/%d]: early stopping at epoch %d" % (
                             i + 1, len(self.pre_trainers), e + 1)
                         break
-
-
 
     def get_ae_cost(self, ae):
         cost = ae.cost
