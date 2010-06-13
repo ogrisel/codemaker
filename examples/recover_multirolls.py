@@ -4,13 +4,15 @@ import pylab as pl
 import time
 
 from codemaker.datasets import multirolls
-from codemaker.embedding import compute_embedding
+from codemaker.embedding import SDAEmbedder
 from codemaker.evaluation import Neighbors, local_match
 
 try:
     import mdp
 except ImportError:
     mdp = None
+
+mdp = None
 
 pl.clf()
 np.random.seed(0)
@@ -40,11 +42,14 @@ data, colors = data[perm], colors[perm]
 
 # build model to extract the manifolds and learn a mapping / encoder to be able
 # to reproduce this on test data
+embedder = SDAEmbedder((n_features, 50, 20, 2), noise=0.1,
+                       sparsity_penalty=0.1, learning_rate=0.001, seed=0)
+
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-code, encoder = compute_embedding(data, 2, epochs=100, batch_size=100,
-                                  learning_rate=0.01, seed=0)
+embedder.pre_train(data, epochs=500, batch_size=10)
 print "done in %ds" % (time.time() - start)
+code = embedder.encode(data)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
 # original (high dim) data and the low dim code on the one hand, and from the

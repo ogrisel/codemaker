@@ -9,72 +9,94 @@ import numpy as np
 import theano
 import theano.tensor as T
 
-def compute_embedding(data, target_dim, epochs=100, batch_size=100,
-                      learning_rate=0.01, seed=None):
-    """Learn an embedding of data into a vector space of target_dim
+class SDAEmbedder(object):
+    """Build a stack of denoising autoencoders to perform low dim embedding"""
 
-    Current implementation: only minize the reconstruction error of a simple
-    autoencoder
+    def __init__(self, dimensions, noise=0.1, sparsity_penalty=1.0,
+                 learning_rate=0.01, seed=None):
+        """Initialize a stack of autoencoders with sparsity penalty
 
-    TODO: stack several wide-band autoencoders with a sparsity penalty + input
-    corruption during pre-training + add a local structure preservation penalty
-    to the overall cost expression such as the one described in the Parametric
-    t-SNE paper by Maarten 2009.
+        dimensions is a python sequence of the input, hidden and output
+        activation unit of the stacked architecture.
 
-    """
-    data = np.atleast_2d(data)
-    data = np.asanyarray(data, dtype=theano.config.floatX)
-    n_samples, n_features = data.shape
+        TODO: implement fine-tuning by applying SGD on the encoder using a
+        divergence measure on the pairwise similarities in input and output
+        space as object function to minimize. E.g.: (t-)SNE or Elastic
+        Embedding.
 
-    if seed is not None:
-        np.random.seed(seed)
-    theano_rng = RandomStreams(seed)
+        """
+        assert len(dimensions) >= 2
+        self.rng = np.random.RandomState(seed)
+        self.noise_rng = RandomStreams(seed)
 
+        # build a stack of autoencoders for the requested dimensions
+        self.autoencoders = []
+        previous_output = T.matrix('ae_in')
 
-    # build autoencoders with sigmoid non linearities
-    hidden_dim = (n_features + target_dim) / 2
-    ae_in = Autoencoder(n_features, hidden_dim, tied=True, noise=0.2,
-                        noise_rng=theano_rng)
-    ae_in.build(T.fmatrix('ae_in'))
+        for in_dim, out_dim in zip(dimensions[:-1], dimensions[1:]):
+            ae = Autoencoder(in_dim, out_dim, tied=True, noise=noise,
+                             rng=self.rng, noise_rng=self.noise_rng)
+            ae.build(previous_output)
+            previous_output = ae.output
+            self.autoencoders.append(ae)
 
-    ae_out = Autoencoder(hidden_dim, target_dim, tied=True, noise=0.1,
-                         noise_rng=theano_rng)
-    ae_out.build(ae_in.output)
+        # chain the encoding parts as a feed forward network
+        self.encoder = NNet(self.autoencoders, errors.mse)
+        self.encoder.build(T.matrix('enc_in'), T.vector('enc_target'))
 
-    # build the forward encoder using the forward layers of the encoders
-    encoder = NNet([ae_in, ae_out], errors.mse)
-    encoder.build(T.fmatrix('enc_in'), T.fvector('enc_target'))
+        # compile the training functions
+        self.sparsity_penalty = sparsity_penalty
+        self.pre_trainers = []
+        for ae in self.autoencoders:
+            cost = self.get_ae_cost(ae)
+            pre_train = theano.function(
+                [self.autoencoders[0].input],
+                cost,
+                updates=get_updates(ae.pre_params, cost, learning_rate)
+            )
+            self.pre_trainers.append(pre_train)
 
-    # symbolic expression of an estimator of the divergence between
-    # similarities in input and output spaces
-    dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
-    dy = T.sum((ae_out.output[:-1] - ae_out.output[1:]) ** 2, axis=1)
-    avg_dx, avg_dy = dx.mean(), dy.mean()
-    embedding_cost = T.mean((dx/avg_dx - dy/avg_dy) ** 2
-                           * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
+        # compile the enconding function
+        self.encode = theano.function([self.encoder.input], self.encoder.output)
 
-    # compound cost mix the regular autoencoder cost along with the embedding
-    # cost
-    cost = 1. * ae_in.cost + 0.5 * ae_out.cost + 50. * embedding_cost
-    #cost = .5 * embedding_cost
-    params = ae_in.pre_params + ae_out.pre_params
-    train = theano.function(
-        [ae_in.input], cost, updates=get_updates(params, cost, learning_rate))
+    def pre_train(self, data, batch_size=50, epochs=100, checkpoint=10):
+        """Iteratively apply SGD to each autoencoder"""
+        data = np.atleast_2d(data)
+        data = np.asanyarray(data, dtype=theano.config.floatX)
+        n_samples, n_features = data.shape
 
-    encode = theano.function([encoder.input], encoder.output)
+        n_batches = n_samples / batch_size
+        for i, trainer in enumerate(self.pre_trainers):
+            print "pre-training layer %d" % i
+            for e in xrange(epochs):
+                # reshuffling data to enforce I.I.D. assumption
+                shuffled = data.copy()
+                self.rng.shuffle(shuffled)
 
-    n_batches = n_samples / batch_size
-    for e in xrange(epochs):
-        print "reshuffling data"
-        shuffled = data.copy()
-        np.random.shuffle(shuffled)
+                err = np.zeros(n_batches)
+                for b in xrange(n_batches):
+                    batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
+                    err[b] = trainer(batch_input).mean()
+                if e % checkpoint == 0:
+                    print "epoch %d: err: %0.3f" % (e, err.mean())
 
-        print "training..."
-        err = np.zeros(n_batches)
-        for b in xrange(n_batches):
-            batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
-            err[b] = train(batch_input).mean()
-        print "epoch %d: err: %0.3f" % (e, err.mean())
+    def get_ae_cost(self, ae):
+        cost = ae.cost
+        if self.sparsity_penalty > 0:
+            # assuming the activation of each unit lies in [-1, 1], take the
+            # L1 norm of the activation
+            cost += self.sparsity_penalty * T.mean(abs(ae.output + 1))
+        return cost
 
-    return encode(data), encode
+    def get_embedding_cost(self):
+        """Local divergence from pairwise similarities in input and output"""
+        ae_in = self.autoencoders[0]
+        ae_out = self.autoencoders[-1]
+        dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
+        dy = T.sum((ae_out.output[:-1] - ae_out.output[1:]) ** 2, axis=1)
+        avg_dx, avg_dy = dx.mean(), dy.mean()
+        # TODO: experiment with (t-)SNE and Elastic Embedding cost functions
+        return T.mean((dx/avg_dx - dy/avg_dy) ** 2
+                      * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
+
 
