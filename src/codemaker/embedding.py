@@ -59,12 +59,15 @@ class SDAEmbedder(object):
         # compile the enconding function
         self.encode = theano.function([self.encoder.input], self.encoder.output)
 
-    def pre_train(self, data, batch_size=50, epochs=100, checkpoint=10):
+    def pre_train(self, data, batch_size=50, epochs=100, checkpoint=10,
+                  patience=50, tolerance=1e-5):
         """Iteratively apply SGD to each autoencoder"""
         data = np.atleast_2d(data)
         data = np.asanyarray(data, dtype=theano.config.floatX)
         n_samples, n_features = data.shape
 
+        best_error = None
+        best_epoch = 0
         n_batches = n_samples / batch_size
         for i, trainer in enumerate(self.pre_trainers):
             for e in xrange(epochs):
@@ -76,10 +79,22 @@ class SDAEmbedder(object):
                 for b in xrange(n_batches):
                     batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
                     err[b] = trainer(batch_input).mean()
+
+                error = err.mean()
                 if e % checkpoint == 0:
                     print "layer [%d/%d], epoch [%03d/%03d]: err: %0.3f" % (
-                        i + 1, len(self.pre_trainers), e + 1, n_batches,
-                        err.mean())
+                        i + 1, len(self.pre_trainers), e + 1, epochs,
+                        error)
+                if best_error is None or error <  best_error - tolerance:
+                    best_error = error
+                    best_epoch = e
+                else:
+                    if e - best_epoch > patience:
+                        print "layer [%d/%d]: early stopping at epoch %d" % (
+                            i + 1, len(self.pre_trainers), e + 1)
+                        break
+
+
 
     def get_ae_cost(self, ae):
         cost = ae.cost
