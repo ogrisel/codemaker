@@ -10,9 +10,9 @@ from codemaker.evaluation import Neighbors, local_match
 pl.clf()
 np.random.seed(0)
 
-n_features = 10
+n_features = 100
 n_samples = 5000
-n_manifolds = 5
+n_manifolds = 100
 
 print "Generating %d embedded swissrolls with n_features=%d, n_samples=%d" % (
     n_manifolds, n_features, n_samples)
@@ -39,8 +39,8 @@ data, colors = data[perm], colors[perm]
 
 # build model to extract the manifolds and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 6, 2), noise=0.0,
-                       sparsity_penalty=0.0, learning_rate=0.01, seed=0)
+embedder = SDAEmbedder((n_features, 50, 20, 2), noise=0.0,
+                       sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 
 random_code = embedder.encode(data)
 score = local_match(data, random_code, query_size=50, ratio=1, seed=0)
