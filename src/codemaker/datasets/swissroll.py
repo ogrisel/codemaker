@@ -75,7 +75,7 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
 
 
 def random_rotate(data, rng=None):
-    """rotate the randomly along all axes"""
+    """Apply the same random rotation along all axes to each sample in data"""
     if rng is None:
         rng = np.random.RandomState()
 
@@ -83,8 +83,11 @@ def random_rotate(data, rng=None):
     # generate a random rotation matrix in dimension n_features by taking the QR
     # decomposition of a random square matrix
     q, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
-    rotation = q if np.linalg.det(q) > 0 else -q
-    return np.dot(data, rotation)
+
+    if np.linalg.det(q) < 0:
+        # make it a real rotation with det(q) = 1 (do we really care?)
+        q[0] *= -1
+    return np.dot(data, q)
 
 
 if __name__ == "__main__":
