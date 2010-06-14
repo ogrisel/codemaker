@@ -6,6 +6,7 @@ import time
 from codemaker.datasets import multirolls
 from codemaker.embedding import SDAEmbedder
 from codemaker.evaluation import Neighbors, local_match
+from codemaker.transforms import random_project
 
 pl.clf()
 np.random.seed(0)
@@ -30,7 +31,8 @@ score = local_match(data, stacked_manifolds, query_size=50, ratio=1, seed=0)
 print "kNN score match manifolds/data (ground truth):", score
 
 # compute the score of a projection
-score = local_match(data, data[:,(0,1)], query_size=50, ratio=1, seed=0)
+projection = random_project(data, target_dim=2, rng=np.random)
+score = local_match(data, projection, query_size=50, ratio=1, seed=0)
 print "kNN score match projection/data (baseline):", score
 
 # reshuffle the data since stochastic gradient descent assumes I.I.D. samples

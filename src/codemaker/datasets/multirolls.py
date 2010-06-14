@@ -3,7 +3,7 @@
 import numpy as np
 
 from codemaker.datasets.swissroll import load as load_one
-from codemaker.datasets.swissroll import random_rotate
+from codemaker.transforms import random_rotate
 
 
 def load(n_samples=10000, n_features=10, n_manifolds=10, seed=0):

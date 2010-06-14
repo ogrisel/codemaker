@@ -2,6 +2,7 @@
 
 from math import cos
 from math import sin
+from codemaker.transforms import random_rotate
 
 import numpy as np
 
@@ -73,21 +74,6 @@ def load(n_samples=1000, n_features=3, rotate=True, n_turns=1.5, seed=0,
         data = random_rotate(data, rng)
     return data, manifold
 
-
-def random_rotate(data, rng=None):
-    """Apply the same random rotation along all axes to each sample in data"""
-    if rng is None:
-        rng = np.random.RandomState()
-
-    n_samples, n_features = data.shape
-
-    # generate a random orthogonal matrix in dimension n_features by taking the
-    # QR decomposition of a random square matrix
-    q, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
-
-    # make it a real rotation by ensuring det(q) = 1 (do we really care?)
-    q[0] *= np.linalg.det(q)
-    return np.dot(data, q)
 
 
 if __name__ == "__main__":
