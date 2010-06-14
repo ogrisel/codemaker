@@ -59,9 +59,13 @@ class SDAEmbedder(object):
         # compile the enconding function
         self.encode = theano.function([self.encoder.input], self.encoder.output)
 
-    def pre_train(self, data, batch_size=50, epochs=100, checkpoint=10,
-                  patience=20, tolerance=1e-4):
-        """Iteratively apply SGD to each autoencoder"""
+    def pre_train(self, data, slice_=slice(None, None), batch_size=50,
+                  epochs=100, checkpoint=10, patience=20, tolerance=1e-4):
+        """Iteratively apply SGD to each autoencoder
+
+        If slice_ is provided, only the matching layers are trained (by default
+        all layers are trained).
+        """
         data = np.atleast_2d(data)
         data = np.asanyarray(data, dtype=theano.config.floatX)
         n_samples, n_features = data.shape
@@ -69,7 +73,11 @@ class SDAEmbedder(object):
         best_error = None
         best_epoch = 0
         n_batches = n_samples / batch_size
-        for i, trainer in enumerate(self.pre_trainers):
+
+        # select the trainers to use
+        trainers = self.pre_trainers[slice_]
+
+        for i, trainer in enumerate(trainers):
             for e in xrange(epochs):
                 # reshuffling data to enforce I.I.D. assumption
                 shuffled = data.copy()
@@ -82,8 +90,8 @@ class SDAEmbedder(object):
 
                 error = err.mean()
                 if e % checkpoint == 0:
-                    print "layer [%d/%d], epoch [%03d/%03d]: err: %0.3f" % (
-                        i + 1, len(self.pre_trainers), e + 1, epochs,
+                    print "layer [%d/%d], epoch [%03d/%03d]: err: %0.5f" % (
+                        i + 1, len(trainers), e + 1, epochs,
                         error)
                 if best_error is None or error <  best_error - tolerance:
                     best_error = error
@@ -91,7 +99,7 @@ class SDAEmbedder(object):
                 else:
                     if e - best_epoch > patience:
                         print "layer [%d/%d]: early stopping at epoch %d" % (
-                            i + 1, len(self.pre_trainers), e + 1)
+                            i + 1, len(trainers), e + 1)
                         break
 
     def get_ae_cost(self, ae):

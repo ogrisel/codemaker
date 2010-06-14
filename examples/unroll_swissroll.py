@@ -33,11 +33,11 @@ print "kNN score match manifold/data:", score_manifold_data
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 10, 2), noise=0.0,
+embedder = SDAEmbedder((n_features, 100, 30, 10, 2), noise=0.1,
                        sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, epochs=500, batch_size=10)
+embedder.pre_train(data, slice_=slice(1, None), epochs=500, batch_size=10)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
