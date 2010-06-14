@@ -67,7 +67,7 @@ COLLECTIONS = (
 def microthumbs(filenames, sizes=[2, 3, 4]):
     """Aggregate pixel values of thumbnails of various micro sizes
 
-    This can be used as a poors man replacement for GIST features for image
+    This can be used as a poor man's replacement for GIST features for image
     clustering.
     """
     result = np.zeros((len(filenames), 3 * sum(s ** 2 for s in sizes)))
@@ -80,7 +80,7 @@ def microthumbs(filenames, sizes=[2, 3, 4]):
     return result
 
 
-#TODO: drop this an replace me by scipy.ndimage instead
+#TODO: drop this and replace me by scipy.ndimage instead
 def img_to_array(image, mode='L', w=32, h=32, dtype=np.float32):
     """Convert a PIL Image into a numpy array"""
     if image.mode != mode:
