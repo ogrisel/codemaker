@@ -13,7 +13,7 @@ class SDAEmbedder(object):
     """Build a stack of denoising autoencoders to perform low dim embedding"""
 
     def __init__(self, dimensions, noise=0.1, sparsity_penalty=1.0,
-                 learning_rate=0.01, seed=None):
+                 embedding_penalty=1.0, learning_rate=0.01, seed=None):
         """Initialize a stack of autoencoders with sparsity penalty
 
         dimensions is a python sequence of the input, hidden and output
@@ -46,6 +46,7 @@ class SDAEmbedder(object):
 
         # compile the training functions
         self.sparsity_penalty = sparsity_penalty
+        self.embedding_penalty = embedding_penalty
         self.pre_trainers = []
         for ae in self.autoencoders:
             cost = self.get_ae_cost(ae)
@@ -108,14 +109,15 @@ class SDAEmbedder(object):
             # assuming the activation of each unit lies in [-1, 1], take the
             # L1 norm of the activation
             cost += self.sparsity_penalty * T.mean(abs(ae.output + 1))
+        if self.embedding_penalty > 0:
+            cost += self.embedding_penalty * self.get_embedding_cost(ae)
         return cost
 
-    def get_embedding_cost(self):
+    def get_embedding_cost(self, ae):
         """Local divergence from pairwise similarities in input and output"""
         ae_in = self.autoencoders[0]
-        ae_out = self.autoencoders[-1]
         dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
-        dy = T.sum((ae_out.output[:-1] - ae_out.output[1:]) ** 2, axis=1)
+        dy = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
         avg_dx, avg_dy = dx.mean(), dy.mean()
         # TODO: experiment with (t-)SNE and Elastic Embedding cost functions
         return T.mean((dx/avg_dx - dy/avg_dy) ** 2

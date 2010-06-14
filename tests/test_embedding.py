@@ -24,7 +24,8 @@ def test_compute_embedding(check_asserts=True):
 
     # compute an embedding of the data
     embedder = SDAEmbedder((n_features, 20, low_dim), noise=0.1,
-                           sparsity_penalty=0.0, learning_rate=0.1, seed=0)
+                           embedding_penalty=100.0,
+                           sparsity_penalty=0.0, learning_rate=0.001, seed=0)
     embedder.pre_train(data, epochs=500, batch_size=50)
 
     code = embedder.encode(data)
@@ -33,9 +34,7 @@ def test_compute_embedding(check_asserts=True):
     # compare nearest neighbors
     score = local_match(data, code, query_size=50, ratio=0.1, seed=0)
 
-    # TODO: score is bad since we only do pretraining right now: need to include
-    # SNE objective function too
-    assert_almost_equal(score, 0.03, 2)
+    assert_almost_equal(score, 0.26, 2)
 
 
 
