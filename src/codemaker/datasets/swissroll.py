@@ -82,7 +82,8 @@ def random_rotate(data, rng=None):
     n_samples, n_features = data.shape
     # generate a random rotation matrix in dimension n_features by taking the QR
     # decomposition of a random square matrix
-    rotation, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
+    q, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
+    rotation = q if np.linalg.det(q) > 0 else -q
     return np.dot(data, rotation)
 
 
