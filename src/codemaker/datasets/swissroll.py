@@ -80,13 +80,13 @@ def random_rotate(data, rng=None):
         rng = np.random.RandomState()
 
     n_samples, n_features = data.shape
-    # generate a random rotation matrix in dimension n_features by taking the QR
-    # decomposition of a random square matrix
+
+    # generate a random orthogonal matrix in dimension n_features by taking the
+    # QR decomposition of a random square matrix
     q, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
 
-    if np.linalg.det(q) < 0:
-        # make it a real rotation with det(q) = 1 (do we really care?)
-        q[0] *= -1
+    # make it a real rotation by ensuring det(q) = 1 (do we really care?)
+    q[0] *= np.linalg.det(q)
     return np.dot(data, q)
 
 
