@@ -4,7 +4,7 @@ import pylab as pl
 import time
 
 from codemaker.datasets import swissroll
-from codemaker.embedding import compute_embedding
+from codemaker.embedding import SDAEmbedder
 from codemaker.evaluation import Neighbors, local_match
 
 try:
@@ -33,16 +33,18 @@ print "kNN score match manifold/data:", score_manifold_data
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
+embedder = SDAEmbedder((n_features, 10, 2), noise=0.0,
+                       sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-code, encoder = compute_embedding(data, 2, epochs=100, batch_size=100,
-                                  learning_rate=0.01, seed=0)
+embedder.pre_train(data, epochs=500, batch_size=10)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
 # original (high dim) data and the low dim code on the one hand, and from the
 # ground truth low dim manifold and the low dim code on the other hand
 
+code = embedder.encode(data)
 score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
 print "kNN score match code/data:", score_code_data
 
@@ -70,7 +72,7 @@ if mdp is not None:
 colors = manifold[:, 0]
 sp = pl.subplot(221)
 sp.scatter(data[:, 0], data[:, 1], c=colors)
-sp.set_title("Projection of the high dim data")
+sp.set_title("2D Projection of the high dim data")
 
 # plot the unrolled manifold embedded in the data
 sp = pl.subplot(222)
