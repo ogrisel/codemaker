@@ -39,7 +39,7 @@ data, colors = data[perm], colors[perm]
 
 # build model to extract the manifolds and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 50, 20, 2), noise=0.0,
+embedder = SDAEmbedder((n_features, 30, 10, 2), noise=0.1,
                        sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 
 random_code = embedder.encode(data)
