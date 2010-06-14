@@ -79,6 +79,6 @@ patterns can also be found in the tests_ folder.
 
    Plot showing the results of the swissroll_ example
 
-   Failed attempt at using the ``codemaker``s embedding utility to extract a 2D
+   Failed attempt at using the ``codemaker`` embedding utility to extract a 2D
    manifold from a toy dataset.
 
