@@ -33,11 +33,11 @@ print "kNN score match manifold/data:", score_manifold_data
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 100, 30, 10, 2), noise=0.1,
+embedder = SDAEmbedder((n_features, 10, 2), noise=0.1,
                        sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, slice_=slice(1, None), epochs=500, batch_size=10)
+embedder.pre_train(data, slice_=slice(None, None), epochs=500, batch_size=100)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
@@ -47,10 +47,6 @@ print "done in %ds" % (time.time() - start)
 code = embedder.encode(data)
 score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
 print "kNN score match code/data:", score_code_data
-
-score_code_manifold = local_match(
-    manifold, code, query_size=50, ratio=1, seed=0)
-print "kNN score match code/manifold:", score_code_manifold
 
 if mdp is not None:
     # unroll the same data with HLLE
@@ -62,10 +58,6 @@ if mdp is not None:
     score_hlle_code_data = local_match(
         data, hlle_code, query_size=50, ratio=1, seed=0)
     print "kNN score match hlle_code/data:", score_hlle_code_data
-
-    score_hlle_code_manifold = local_match(
-        manifold, hlle_code, query_size=50, ratio=1, seed=0)
-    print "kNN score match hlle_code/manifold:", score_hlle_code_manifold
 
 
 # plot the 2d projection of the first two axes
