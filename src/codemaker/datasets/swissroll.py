@@ -80,20 +80,10 @@ def random_rotate(data, rng=None):
         rng = np.random.RandomState()
 
     n_samples, n_features = data.shape
-
-    # WARNING: this is not a real random rotation matrix, the curse of
-    # dimensionality is making the last features very small w.r.t. the first
-    # dims: how to mitigate this? should we normalize / rescale?
-    axis = range(0, n_features - 1)
-    for i in axis:
-        rotation = np.identity(n_features)
-        angle = rng.normal(np.pi / 4, np.pi / 32)
-        c, s = cos(angle), sin(angle)
-        rotation[i][i], rotation[i + 1][i + 1] = c, c
-        rotation[i][i + 1], rotation[i + 1][i] = s, -s
-        data = np.dot(data, rotation)
-
-    return data
+    # generate a random rotation matrix in dimension n_features by taking the QR
+    # decomposition of a random square matrix
+    rotation, _ = np.linalg.qr(rng.uniform(size=(n_features, n_features)))
+    return np.dot(data, rotation)
 
 
 if __name__ == "__main__":
