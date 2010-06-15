@@ -12,8 +12,9 @@ import theano.tensor as T
 class SDAEmbedder(object):
     """Build a stack of denoising autoencoders to perform low dim embedding"""
 
-    def __init__(self, dimensions, noise=0.1, sparsity_penalty=1.0,
-                 embedding_penalty=1.0, learning_rate=0.01, seed=None):
+    def __init__(self, dimensions, noise=0.1, reconstruction_penalty=1.0,
+                 sparsity_penalty=1.0, embedding_penalty=1.0,
+                 learning_rate=0.01, seed=None):
         """Initialize a stack of autoencoders with sparsity penalty
 
         dimensions is a python sequence of the input, hidden and output
@@ -45,6 +46,7 @@ class SDAEmbedder(object):
         self.encoder.build(T.matrix('enc_in'), T.vector('enc_target'))
 
         # compile the training functions
+        self.reconstruction_penalty = reconstruction_penalty
         self.sparsity_penalty = sparsity_penalty
         self.embedding_penalty = embedding_penalty
         self.pre_trainers = []
@@ -61,7 +63,7 @@ class SDAEmbedder(object):
         self.encode = theano.function([self.encoder.input], self.encoder.output)
 
     def pre_train(self, data, slice_=slice(None, None), batch_size=50,
-                  epochs=100, checkpoint=10, patience=20, tolerance=1e-4):
+                  epochs=100, checkpoint=10, patience=20, tolerance=1e-5):
         """Iteratively apply SGD to each autoencoder
 
         If slice_ is provided, only the matching layers are trained (by default
@@ -104,7 +106,9 @@ class SDAEmbedder(object):
                         break
 
     def get_ae_cost(self, ae):
-        cost = ae.cost
+        cost = 0.0
+        if self.reconstruction_penalty > 0:
+            cost += self.reconstruction_penalty * ae.cost
         if self.sparsity_penalty > 0:
             # assuming the activation of each unit lies in [-1, 1], take the
             # L1 norm of the activation
@@ -113,14 +117,16 @@ class SDAEmbedder(object):
             cost += self.embedding_penalty * self.get_embedding_cost(ae)
         return cost
 
-    def get_embedding_cost(self, ae):
-        """Local divergence from pairwise similarities in input and output"""
+    def get_embedding_cost(self, ae, lambda_=0.5):
+        """Local divergence from pairwise similarities in input and output
+
+        The following is derived from the Elastic Embedding cost from
+        M. Carreira-Perpinan 2010.
+        """
         ae_in = self.autoencoders[0]
-        dx = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
-        dy = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
-        avg_dx, avg_dy = dx.mean(), dy.mean()
-        # TODO: experiment with (t-)SNE and Elastic Embedding cost functions
-        return T.mean((dx/avg_dx - dy/avg_dy) ** 2
-                      * T.exp(-(dx / (0.5 * avg_dx)) ** 2))
+        dx2 = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
+        dy2 = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
+        return  (1 - lambda_) * T.mean(dy2 / dy2.mean() * T.exp(-dx2 / dx2.mean())) + \
+                lambda_ * T.mean(dx2 / dx2.mean() * T.exp(-dy2 / dy2.mean()))
 
 

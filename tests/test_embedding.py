@@ -23,10 +23,12 @@ def test_compute_embedding(check_asserts=True):
     assert_almost_equal(score, 0.12, 2)
 
     # compute an embedding of the data
-    embedder = SDAEmbedder((n_features, 20, low_dim), noise=0.1,
-                           embedding_penalty=100.0,
-                           sparsity_penalty=0.0, learning_rate=0.001, seed=0)
-    embedder.pre_train(data, epochs=500, batch_size=50)
+    embedder = SDAEmbedder((n_features, 40, 15, low_dim),
+                           noise=0.1,
+                           reconstruction_penalty=.0,
+                           embedding_penalty=1,
+                           sparsity_penalty=0.0, learning_rate=0.1, seed=0)
+    embedder.pre_train(data, epochs=500, batch_size=5)
 
     code = embedder.encode(data)
     assert_equal(code.shape, (n_samples, low_dim))
@@ -34,7 +36,7 @@ def test_compute_embedding(check_asserts=True):
     # compare nearest neighbors
     score = local_match(data, code, query_size=50, ratio=0.1, seed=0)
 
-    assert_almost_equal(score, 0.26, 2)
+    assert_almost_equal(score, 0.34, 2)
 
 
 

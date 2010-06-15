@@ -42,6 +42,8 @@ data, colors = data[perm], colors[perm]
 # build model to extract the manifolds and learn a mapping / encoder to be able
 # to reproduce this on test data
 embedder = SDAEmbedder((n_features, 30, 10, 2), noise=0.1,
+                       embedding_penalty=1.0,
+                       reconstruction_penalty=0.1,
                        sparsity_penalty=0.0, learning_rate=0.1, seed=0)
 
 random_code = embedder.encode(data)
@@ -50,7 +52,7 @@ print "kNN score match random code/data:", score
 
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, epochs=500, batch_size=10)
+embedder.pre_train(data, epochs=500, batch_size=5)
 print "done in %ds" % (time.time() - start)
 code = embedder.encode(data)
 

@@ -23,9 +23,9 @@ print "Generating embedded swissroll with n_features=%d and n_samples=%d" % (
 data, manifold = swissroll.load(
     n_features=n_features,
     n_samples=n_samples,
-    n_turns=1.5,
+    n_turns=1.2,
     radius=1.,
-    hole=True,
+    hole=False,
 )
 score_manifold_data = local_match(
     data, manifold, query_size=50, ratio=1, seed=0)
@@ -33,11 +33,15 @@ print "kNN score match manifold/data:", score_manifold_data
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 10, 2), noise=0.1,
-                       sparsity_penalty=0.0, learning_rate=0.1, seed=0)
+embedder = SDAEmbedder((n_features, 10, 2),
+                       noise=0.1,
+                       reconstruction_penalty=0.0,
+                       embedding_penalty=1.0,
+                       sparsity_penalty=0.0,
+                       learning_rate=0.1, seed=0)
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, slice_=slice(None, None), epochs=500, batch_size=100)
+embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=10)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
