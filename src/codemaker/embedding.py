@@ -112,6 +112,9 @@ class SDAEmbedder(object):
         if self.sparsity_penalty > 0:
             # assuming the activation of each unit lies in [-1, 1], take the
             # L1 norm of the activation
+            # TODO: run a component wise online estimate of the activations
+            # using a exponential decay instead of the spatial sparsity
+            # constraint
             cost += self.sparsity_penalty * T.mean(abs(ae.output + 1))
         if self.embedding_penalty > 0:
             cost += self.embedding_penalty * self.get_embedding_cost(ae)
@@ -124,6 +127,9 @@ class SDAEmbedder(object):
         M. Carreira-Perpinan 2010.
         """
         ae_in = self.autoencoders[0]
+        # TODO: make it possible to provide dx2 and dx2.mean() in advance and
+        # online estimate dy2.mean() on the whole collection using a exponential
+        # decay
         dx2 = T.sum((ae_in.input[:-1] - ae_in.input[1:]) ** 2, axis=1)
         dy2 = T.sum((ae.output[:-1] - ae.output[1:]) ** 2, axis=1)
         return  (1 - lambda_) * T.mean(dy2 / dy2.mean() * T.exp(-dx2 / dx2.mean())) + \
