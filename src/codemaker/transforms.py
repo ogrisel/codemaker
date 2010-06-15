@@ -3,7 +3,10 @@
 import numpy as np
 
 def random_basis(data, rng=None):
-    """Apply the same random basis change to each sample in data"""
+    """Apply the same random basis change to each sample in data
+
+    Dot product values in the new basis remain unchanged.
+    """
     if rng is None:
         rng = np.random.RandomState()
 
