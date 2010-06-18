@@ -1,8 +1,8 @@
 import numpy as np
-from scikits.learn.glm import ElasticNetPath
-from scikits.learn.glm import LassoPath
-# TODO: implement a variant using LassoLARS when ready
-
+from scikits.learn.glm import ElasticNetCV
+from scikits.learn.glm import LassoCV
+#from scikits.learn.glm import LeastAngleRegression
+# TODO: use LARS instead of coordinate descent variants of LASSO
 
 def sparse_encode(D, data, callback=None, rho=1.0, n_alphas=5, eps=1e-2):
     """Given dictionary D, find sparse encoding of vectors in data
@@ -18,9 +18,9 @@ def sparse_encode(D, data, callback=None, rho=1.0, n_alphas=5, eps=1e-2):
     for i, code in enumerate(data):
         # TODO: parallelize me with multiprocessing!
         if rho == 1.0:
-            clf = LassoPath(n_alphas=n_alphas, eps=eps).fit(D, code)
+            clf = LassoCV(n_alphas=n_alphas, eps=eps).fit(D, code)
         else:
-            clf = ElasticNetPath(
+            clf = ElasticNetCV(
                 n_alphas=n_alphas, eps=eps, rho=rho).fit(D, code)
         encoded[i][:] = clf.coef_
         if callback is not None:
