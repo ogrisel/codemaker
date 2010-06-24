@@ -28,7 +28,7 @@ def preview_nearest(ref_idx, codes, filenames, n=5):
             sp.imshow(np.flipud(mpimg.imread(f)))
 
 
-def local_match(data, code, query_size=10, ratio=1.0, seed=None):
+def local_match(data, code, query_size=10, ratio=1.0, seed=0):
     """Estimate the average accuracy of knn queries."""
     n_samples = data.shape[0]
     n_subset = int(ratio * n_samples)
@@ -45,4 +45,30 @@ def local_match(data, code, query_size=10, ratio=1.0, seed=None):
         accuracies[i] = float(len(set(knn_data) & set(knn_code))) / query_size
 
     return accuracies.mean()
+
+
+def pairwise_distances(data, code, seed=0, ax=None, title=None):
+    """Utility to scatter plot random pairwise distances in data vs code
+
+    Return random pairwise distance in data space, matching distances in code
+    space and the Pearson correlation between both.
+    """
+    rng = Random(seed)
+    indices = range(len(data))
+    rng.shuffle(indices)
+    data = data[indices]
+    code = code[indices]
+
+    d_data = np.sqrt(np.sum((data[1:] - data[:-1]) ** 2, axis=1))
+    d_code = np.sqrt(np.sum((code[1:] - code[:-1]) ** 2, axis=1))
+
+    if ax is not None:
+        ax.scatter(d_data, d_code)
+        ax.set_xlabel("Pairwise distances in data space")
+        ax.set_ylabel("Pairwise distances in code space")
+        if title is not None:
+            ax.set_title(title)
+
+    return d_data, d_code, np.corrcoef(d_data, d_code)[0][1]
+
 
