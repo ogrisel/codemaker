@@ -23,7 +23,7 @@ print "Generating embedded swissroll with n_features=%d and n_samples=%d" % (
 data, manifold = swissroll.load(
     n_features=n_features,
     n_samples=n_samples,
-    n_turns=1.2,
+    n_turns=2.2,
     radius=1.,
     hole=False,
 )
@@ -35,13 +35,13 @@ print "kNN score match manifold/data:", score_manifold_data
 # to reproduce this on test data
 embedder = SDAEmbedder((n_features, 10, 2),
                        noise=0.1,
-                       reconstruction_penalty=0.0,
-                       embedding_penalty=1.0,
+                       reconstruction_penalty=1.0,
+                       embedding_penalty=0.1,
                        sparsity_penalty=0.0,
                        learning_rate=0.1, seed=0)
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=10)
+embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=100)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
@@ -50,7 +50,17 @@ print "done in %ds" % (time.time() - start)
 
 code = embedder.encode(data)
 score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
-print "kNN score match code/data:", score_code_data
+print "kNN score match after pre-training code/data:", score_code_data
+
+# fine tuning
+print "Fine tuning encoder to unroll the embedded data..."
+start = time.time()
+embedder.fine_tune(data, epochs=1000, batch_size=100)
+print "done in %ds" % (time.time() - start)
+
+code = embedder.encode(data)
+score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
+print "kNN score match after fine-tuning code/data:", score_code_data
 
 if mdp is not None:
     # unroll the same data with HLLE
