@@ -5,7 +5,7 @@ import time
 
 from codemaker.datasets import swissroll
 from codemaker.embedding import SDAEmbedder
-from codemaker.evaluation import Neighbors, local_match
+from codemaker.evaluation import Neighbors, local_match, pairwise_distances
 
 try:
     import mdp
@@ -35,13 +35,23 @@ print "kNN score match manifold/data:", score_manifold_data
 # to reproduce this on test data
 embedder = SDAEmbedder((n_features, 10, 2),
                        noise=0.1,
-                       reconstruction_penalty=0.0,
-                       embedding_penalty=1.0,
+                       reconstruction_penalty=1.0,
+                       embedding_penalty=0.1,
                        sparsity_penalty=0.0,
                        learning_rate=0.1, seed=0)
+
+# use the randomly initialized encoder to measure the baseline
+code = embedder.encode(data)
+score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
+print "kNN score match after pre-training code/data:", score_code_data
+fig = pl.figure(1)
+_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 1),
+                                title="random")
+print "Pairwise distances correlation:", corr
+
 print "Training encoder to unroll the embedded data..."
 start = time.time()
-embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=10)
+embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=100)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
@@ -50,7 +60,24 @@ print "done in %ds" % (time.time() - start)
 
 code = embedder.encode(data)
 score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
-print "kNN score match code/data:", score_code_data
+print "kNN score match after pre-training code/data:", score_code_data
+_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 2),
+                                title="pre-training")
+print "Pairwise distances correlation:", corr
+
+# fine tuning
+print "Fine tuning encoder to unroll the embedded data..."
+start = time.time()
+embedder.fine_tune(data, epochs=1000, batch_size=5)
+print "done in %ds" % (time.time() - start)
+
+code = embedder.encode(data)
+score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
+print "kNN score match after fine-tuning code/data:", score_code_data
+_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 3),
+                                title="fine tuning")
+print "Pairwise distances correlation:", corr
+
 
 if mdp is not None:
     # unroll the same data with HLLE
@@ -64,6 +91,7 @@ if mdp is not None:
     print "kNN score match hlle_code/data:", score_hlle_code_data
 
 
+pl.figure(2)
 # plot the 2d projection of the first two axes
 colors = manifold[:, 0]
 sp = pl.subplot(221)

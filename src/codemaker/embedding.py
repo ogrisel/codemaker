@@ -80,10 +80,10 @@ class SDAEmbedder(object):
         # select the trainers to use
         trainers = self.pre_trainers[slice_]
 
+        shuffled = data.copy()
         for i, trainer in enumerate(trainers):
             for e in xrange(epochs):
                 # reshuffling data to enforce I.I.D. assumption
-                shuffled = data.copy()
                 self.rng.shuffle(shuffled)
 
                 err = np.zeros(n_batches)
@@ -104,6 +104,46 @@ class SDAEmbedder(object):
                         print "layer [%d/%d]: early stopping at epoch %d" % (
                             i + 1, len(trainers), e + 1)
                         break
+
+    def fine_tune(self, data, batch_size=50, epochs=100, learning_rate=0.1,
+                  checkpoint=10, patience=20, tolerance=1e-5):
+        """Use SGD to optimize the embedding computed by the encoder stack"""
+        data = np.atleast_2d(data)
+        data = np.asanyarray(data, dtype=theano.config.floatX)
+        n_samples, n_features = data.shape
+
+        best_error = None
+        best_epoch = 0
+        n_batches = n_samples / batch_size
+
+        cost = self.get_embedding_cost(self.autoencoders[-1])
+        tuner = theano.function(
+            [self.autoencoders[0].input],
+            cost,
+            updates=get_updates(self.encoder.params, cost, learning_rate)
+        )
+
+        shuffled = data.copy()
+        for e in xrange(epochs):
+            # reshuffling data to enforce I.I.D. assumption
+            self.rng.shuffle(shuffled)
+
+            err = np.zeros(n_batches)
+            for b in xrange(n_batches):
+                batch_input = shuffled[b * batch_size:(b + 1) * batch_size]
+                err[b] = tuner(batch_input).mean()
+
+            error = err.mean()
+            if e % checkpoint == 0:
+                print "fine tune: epoch [%03d/%03d]: err: %0.5f" % (
+                    e + 1, epochs, error)
+            if best_error is None or error <  best_error - tolerance:
+                best_error = error
+                best_epoch = e
+            else:
+                if e - best_epoch > patience:
+                    print "fine tune: early stopping at epoch %d" % (e + 1)
+                    break
 
     def get_ae_cost(self, ae):
         cost = 0.0

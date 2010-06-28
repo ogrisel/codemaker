@@ -36,7 +36,7 @@ def test_compute_embedding(check_asserts=True):
     # compare nearest neighbors
     score = local_match(data, code, query_size=50, ratio=0.1, seed=0)
 
-    assert_almost_equal(score, 0.34, 2)
+    assert_almost_equal(score, 0.33, 1)
 
 
 
