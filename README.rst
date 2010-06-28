@@ -25,7 +25,7 @@ This is experimental code. Nothing is expected to work as advertised yet :)
 Implemented:
 
   - deterministic (optimal) sparse encoding using an existing dictionary
-    and coordinate descent (see ``codemaker.sparse``)
+    and Least Angle Regression (see ``codemaker.sparse``)
 
 Work in progress:
 
