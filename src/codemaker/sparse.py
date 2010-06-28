@@ -23,9 +23,7 @@ def sparse_encode(D, data, callback=None, max_features=10):
 
         # threshold near zero values due to an implementation detail in the
         # current LARS implementation
-        encoded[i][:] = np.where(abs(clf.coef_) < 1e-10,
-                               np.zeros(clf.coef_.shape),
-                               clf.coef_)
+        encoded[i][:] = np.where(abs(clf.coef_) < 1e-10, 0, clf.coef_)
 
         if callback is not None:
             callback(i)
