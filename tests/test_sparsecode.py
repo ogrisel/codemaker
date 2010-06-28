@@ -19,7 +19,7 @@ def test_random_sparsecode():
     D = x[:n_basis].T
 
     # encode all samples according to D
-    encoded = sparse_encode(D, x)
+    encoded = np.asarray(sparse_encode(D, x).todense())
     assert_equal(encoded.shape, (n_samples, n_basis))
 
     # check that the first sample are encoded using a single component (trivial
@@ -50,7 +50,7 @@ def test_parallel_sparse_code():
     encoded_1 = sparse_encode(D, x, max_features=3)
     encoded_2 = SparseEncoder(D, max_features=3, n_cores=2)(x)
 
-    assert_almost_equal(encoded_1, encoded_2)
+    assert_almost_equal(encoded_1.todense(), encoded_2.todense())
 
 
 

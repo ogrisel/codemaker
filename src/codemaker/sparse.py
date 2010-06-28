@@ -2,6 +2,9 @@ from multiprocessing import Pool
 from multiprocessing import cpu_count
 import numpy as np
 from scikits.learn.glm import LeastAngleRegression
+from scipy.sparse import vstack
+from scipy.sparse import csr_matrix
+
 
 def sparse_encode(D, data, callback=None, max_features=10):
     """Given dictionary D, find sparse encoding of vectors in data
@@ -13,19 +16,23 @@ def sparse_encode(D, data, callback=None, max_features=10):
     data = np.asanyarray(data, dtype=np.double)
     data = np.atleast_2d(data)
 
-    # TODO: use a smart sparse representation instead
-    encoded = np.zeros((data.shape[0], D.shape[1]), dtype=np.double)
+    encoded = None
 
-    for i, code in enumerate(data):
-        clf = LeastAngleRegression().fit(
-            D, code, normalize=False, intercept=False,
-            max_features=max_features)
+    for i, x_i in enumerate(data):
+        c_i = LeastAngleRegression().fit(
+            D, x_i, normalize=False, intercept=False,
+            max_features=max_features).coef_
 
         # threshold near zero values due to an implementation detail in the
         # current LARS implementation
-        encoded[i][:] = np.where(abs(clf.coef_) < 1e-10,
-                               np.zeros(clf.coef_.shape),
-                               clf.coef_)
+        c_i[np.where(abs(c_i) < 1e-10)] = 0.0
+
+        # stack the encoded vectors in sparse representation
+        c_i = csr_matrix(c_i)
+        if encoded is None:
+            encoded = c_i
+        else:
+            encoded = vstack((encoded, c_i), format="csr")
 
         if callback is not None:
             callback(i)
@@ -79,6 +86,6 @@ class SparseEncoder(object):
             job_args = [(self.dictionary, chunk, max_features)
                         for chunk in np.array_split(data, self.n_cores * 2)]
 
-            return np.vstack(self._pool.map(_job_fun, job_args))
+            return vstack(self._pool.map(_job_fun, job_args))
 
 
