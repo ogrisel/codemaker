@@ -67,6 +67,7 @@ class SparseEncoder(object):
 
     def __call__(self, data, max_features=None):
         """Encode data against the reference dictionary"""
+        data = np.atleast_2d(data)
         if max_features is None:
             max_features = self.max_features
 
