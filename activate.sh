@@ -1,2 +1,3 @@
 #!/bin/sh
-export PYTHONPATH="../theano:../pynnet:../scikit-learn:./src:$PYTHONPATH"
+HERE=`pwd`
+export PYTHONPATH="$HERE/../theano:$HERE/../pynnet:$HERE/../scikit-learn:$HERE/src:$PYTHONPATH"
