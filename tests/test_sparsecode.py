@@ -6,7 +6,7 @@ from numpy.testing import assert_almost_equal
 
 def test_random_sparsecode():
 
-    n_samples = 500
+    n_samples = 50
     n_features = 50
     n_basis = 30
 
