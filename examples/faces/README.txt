@@ -11,14 +11,20 @@ To run the experiment:
 
 2- Download the funneled version of the Labeled Faces in the Wild
    dataset (a.k.a. LFW_) and untar it in the current folder (or use a symbolic
-   link named ``lfw-funneled``):
+   link named ``lfw_funneled``)::
 
-   http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz (233MB)
+   % wget http://vis-www.cs.umass.edu/lfw/lfw-funneled.tgz # (233MB)
+   % tar zxvf lfw-funneled.tgz
 
 .. _LFW: http://vis-www.cs.umass.edu/lfw/
 
-3- Run the ``preprocess.py`` script that will create a new folder
-   ``lfw-funneled-gray`` containing resized, gray level pictures that will be
+3- Dowload the OpenCV_ Haarmodel for faces detection and put it in the local
+   directory too::
+
+   % wget https://code.ros.org/svn/opencv/trunk/opencv/data/haarcascades/haarcascade_frontalface_alt.xml
+
+4- Run the ``preprocess.py`` script that will create a new folder
+   ``lfw_funneled_gray`` containing resized, gray level pictures that will be
    used as training set for the dictionnary learner.
 
 4- TODO
