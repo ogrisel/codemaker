@@ -11,6 +11,7 @@ import os
 import sys
 import cv
 import shutil
+from multiprocessing import Pool
 from optparse import OptionParser
 
 RAW_DATA_FOLDER = "lfw_funneled"
@@ -28,8 +29,9 @@ haar_scale = 1.2
 min_neighbors = 2
 haar_flags = 0
 
-def detect_and_extract(input_img_path, output_img_path, cascade, w=64, h=64):
-    """"""
+def detect_and_extract(input_img_path, output_img_path, cascade, w=64, h=64,
+                       print_progress=False):
+    """Run the OpenCV facedetector and extract downscaled gray bounding box"""
     gray = cv.LoadImage(input_img_path, cv.CV_LOAD_IMAGE_GRAYSCALE)
     cv.EqualizeHist(gray, gray)
 
@@ -46,6 +48,24 @@ def detect_and_extract(input_img_path, output_img_path, cascade, w=64, h=64):
         cv.Resize(gray, small, cv.CV_INTER_CUBIC)
         cv.SaveImage(output_img_path, small)
         cv.ResetImageROI(gray)
+
+        if print_progress:
+            sys.stdout.write(".")
+            sys.stdout.flush()
+
+
+class WorkerInterrupt(Exception): pass
+
+def _job_fun(args):
+    try:
+        cascade_file, pairs = args
+        cascade = cv.Load(cascade_file)
+        for input_file, output_file in pairs:
+            detect_and_extract(input_file, output_file, cascade,
+                               print_progress=True)
+    except KeyboardInterrupt:
+        raise WorkerInterrupt()
+
 
 if __name__ == '__main__':
     parser = OptionParser(usage = "usage: %prog [option]")
@@ -68,6 +88,7 @@ if __name__ == '__main__':
 
     (options, args) = parser.parse_args()
 
+    # check that the cascade file is loadable
     cascade = cv.Load(options.cascade)
 
     if not os.path.exists(options.output_folder):
@@ -77,22 +98,33 @@ if __name__ == '__main__':
             shutil.rmtree(options.output_folder)
             os.makedirs(options.output_folder)
 
-    for dirpath, dirnames, filenames in os.walk(options.input_folder):
-        dirnames.sort()
-        filenames.sort()
-        for filename in filenames:
-            if filename.endswith(".jpg"):
-                input_path = os.path.join(dirpath, filename)
-                output_path = os.path.join(options.output_folder, filename)
-                output_path = output_path[:-3] + "png"
-                if os.path.exists(output_path):
-                    sys.stdout.write("o")
-                    sys.stdout.flush()
-                    continue
-                detect_and_extract(input_path, output_path, cascade)
-                sys.stdout.write(".")
-                sys.stdout.flush()
+    pool = Pool()
+    job_args = []
+    filepath_pairs = []
+    try:
+        for dirpath, dirnames, filenames in os.walk(options.input_folder):
+            dirnames.sort()
+            filenames.sort()
+            for filename in filenames:
+                if filename.endswith(".jpg"):
+                    input_path = os.path.join(dirpath, filename)
+                    output_path = os.path.join(options.output_folder, filename)
+                    output_path = output_path[:-3] + "png"
+                    if os.path.exists(output_path):
+                        continue
+                    filepath_pairs.append((input_path, output_path))
+                    if len(filepath_pairs) >= 100:
+                        job_args.append((options.cascade, filepath_pairs))
+                        filepath_pairs = []
 
-    sys.stdout.write("\n")
+        pool.map(_job_fun, job_args)
+        ppol.close()
 
+    except KeyboardInterrupt:
+        pool.terminate()
+    except WorkerInterrupt:
+        pool.terminate()
+    finally:
+        print
+        pool.join()
 
