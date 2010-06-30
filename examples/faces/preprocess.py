@@ -118,7 +118,7 @@ if __name__ == '__main__':
                         filepath_pairs = []
 
         pool.map(_job_fun, job_args)
-        ppol.close()
+        pool.close()
 
     except KeyboardInterrupt:
         pool.terminate()
