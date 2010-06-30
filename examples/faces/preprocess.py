@@ -13,6 +13,7 @@ import cv
 import shutil
 from multiprocessing import Pool
 from optparse import OptionParser
+from codemaker.features.image import pack
 
 RAW_DATA_FOLDER = "lfw_funneled"
 GRAY_DATA_FOLDER = "lfw_funneled_gray"
@@ -86,6 +87,14 @@ if __name__ == '__main__':
                       dest="clean", default=False,
                       help="Clean any existing output folder")
 
+    parser.add_option("-p", '--pack-file', action="store",
+                      dest="pack_file", default="faces.npy.gz",
+                      help="Packed numpy array of preprocessed img data")
+
+    parser.add_option("-f", '--filename-index', action="store",
+                      dest="index_file", default="face_filenames.txt",
+                      help="Text index of the packed faces")
+
     (options, args) = parser.parse_args()
 
     # check that the cascade file is loadable
@@ -98,6 +107,7 @@ if __name__ == '__main__':
             shutil.rmtree(options.output_folder)
             os.makedirs(options.output_folder)
 
+    print "extracting faces..."
     pool = Pool()
     job_args = []
     filepath_pairs = []
@@ -127,4 +137,10 @@ if __name__ == '__main__':
     finally:
         print
         pool.join()
+
+    # pack the results as serialized numpy array + text index
+    print "packing image data..."
+    pack(options.output_folder, options.index_file, options.pack_file,
+         has_category=False)
+    print "wrote files: %s and %s" % (options.index_file, options.pack_file)
 

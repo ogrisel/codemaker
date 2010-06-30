@@ -187,35 +187,42 @@ def preprocess(input_folder, output_folder, w=32, h=32, gray_levels=True):
 
 
 def pack(input_folder, index_file, data_output_file, label_output_file=None,
-         seed=42, dtype=np.float32, transform=None):
+         seed=42, dtype=np.float32, transform=None, has_category=True):
     """Pack picture files as numpy arrays with category folder as labels"""
-    all_filenames = [(category, os.path.join(input_folder, category, filename))
-                     for category in os.listdir(input_folder)
-                     for filename in os.listdir(
-                         os.path.join(input_folder, category))]
-    random.seed(seed)
-    random.shuffle(all_filenames)
 
-    # count the number of picture by category and drop excedent so that all
-    # categories have equal number of samples
+    rng = random.Random(seed)
+    if has_category:
+        all_filenames = [(category,
+                          os.path.join(input_folder, category, filename))
+                         for category in os.listdir(input_folder)
+                         for filename in os.listdir(
+                             os.path.join(input_folder, category))]
 
-    counts = dict()
-    for c, _ in all_filenames:
-        if c in counts:
-            counts[c] += 1
-        else:
-            counts[c] = 1
-    limit = min(counts.values())
+        # count the number of picture by category and drop excedent so that
+        # all categories have equal number of samples
+        rng.shuffle(all_filenames)
 
-    resampled_filenames = []
-    counts = dict()
-    for c, fn in all_filenames:
-        if c in counts:
-            counts[c] += 1
-        else:
-            counts[c] = 1
-        if counts[c] <= limit:
-            resampled_filenames.append(fn)
+        counts = dict()
+        for c, _ in all_filenames:
+            if c in counts:
+                counts[c] += 1
+            else:
+                counts[c] = 1
+        limit = min(counts.values())
+
+        resampled_filenames = []
+        counts = dict()
+        for c, fn in all_filenames:
+            if c in counts:
+                counts[c] += 1
+            else:
+                counts[c] = 1
+            if counts[c] <= limit:
+                resampled_filenames.append(fn)
+    else:
+        resampled_filenames = [os.path.join(input_folder, filename)
+                               for filename in os.listdir(input_folder)]
+        rng.shuffle(resampled_filenames)
 
     with file(index_file, "wb") as f:
         f.write("\n".join(resampled_filenames))
