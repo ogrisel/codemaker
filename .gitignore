@@ -1,6 +1,7 @@
 *.swp
 *.pyc
 *.png
+*.npy
 data/*
 build
 
