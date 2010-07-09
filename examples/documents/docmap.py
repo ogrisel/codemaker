@@ -31,7 +31,7 @@ if not os.path.exists(data_file):
     y = y[permutation]
 
     # sample part of X to be used for plotting
-    plot_size = 100
+    plot_size = 1000
     data = X[:plot_size]
     colors = y[:plot_size]
 
@@ -51,7 +51,7 @@ n_samples, n_features = data.shape
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 2000, 1000, 500, 200, 100, 2),
+embedder = SDAEmbedder((n_features, 2000, 1000, 500, 200, 100, 30, 2),
                        noise=0.1,
                        reconstruction_penalty=1.0,
                        embedding_penalty=0.0,
@@ -71,7 +71,7 @@ fig = pl.figure(1)
 code = embedder.encode(data)
 score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
 print "kNN score match after pre-training code/data:", score_code_data
-_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 2),
+_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(1, 1, 1),
                                 title="pre-training")
 print "Pairwise distances correlation:", corr
 
@@ -81,12 +81,12 @@ print "Pairwise distances correlation:", corr
 #embedder.fine_tune(data, epochs=100, batch_size=5)
 #print "done in %ds" % (time.time() - start)
 
-code = embedder.encode(data)
-score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
-print "kNN score match after fine-tuning code/data:", score_code_data
-_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 3),
-                                title="fine tuning")
-print "Pairwise distances correlation:", corr
+#code = embedder.encode(data)
+#score_code_data = local_match(data, code, query_size=50, ratio=1, seed=0)
+#print "kNN score match after fine-tuning code/data:", score_code_data
+#_, _, corr = pairwise_distances(data, code, ax=fig.add_subplot(3, 1, 3),
+#                                title="fine tuning")
+#print "Pairwise distances correlation:", corr
 
 pl.figure(2)
 # plot the 2d projection of the first two axes
