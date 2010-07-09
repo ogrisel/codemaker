@@ -31,7 +31,7 @@ if not os.path.exists(data_file):
     y = y[permutation]
 
     # sample part of X to be used for plotting
-    plot_size = 1000
+    plot_size = 5000
     data = X[:plot_size]
     colors = y[:plot_size]
 
@@ -60,7 +60,7 @@ embedder = SDAEmbedder((n_features, 2000, 1000, 500, 200, 100, 30, 2),
 
 print "Training encoder to extract a semantic preserving 2D mapping"
 start = time.time()
-embedder.pre_train(data, slice_=slice(None, None), epochs=100, batch_size=100)
+embedder.pre_train(data, slice_=slice(None, None), epochs=1000, batch_size=100)
 print "done in %ds" % (time.time() - start)
 
 # evaluation of the quality of the embedding by comparing kNN queries from the
