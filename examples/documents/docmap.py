@@ -51,7 +51,7 @@ n_samples, n_features = data.shape
 
 # build model to extract the manifold and learn a mapping / encoder to be able
 # to reproduce this on test data
-embedder = SDAEmbedder((n_features, 2000, 1000, 500, 200, 100, 30, 2),
+embedder = SDAEmbedder((n_features, 500, 30, 2),
                        noise=0.1,
                        reconstruction_penalty=1.0,
                        embedding_penalty=0.0,
