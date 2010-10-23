@@ -13,12 +13,9 @@ from gzip import GzipFile
 from PIL import Image
 from cStringIO import StringIO
 from restkit import Resource
-from restkit import ConnectionPool
 from lxml import etree
 import numpy as np
 import leargist
-
-CONNECTION_POOL = ConnectionPool(max_connections=4)
 
 BASE_SERVER_URL = "http://commons.wikimedia.org"
 BASE_CATEGORY_URL = "/wiki/Category:"
@@ -112,11 +109,11 @@ def urldecode(url):
 
 def find_image_urls(category, server_url=BASE_SERVER_URL,
                     category_prefix=BASE_CATEGORY_URL,
-                    resource=None, pool=CONNECTION_POOL):
+                    resource=None):
     """Scrap the mediawiki category pages to identify thumbs to download"""
     parser = etree.HTMLParser()
     if resource is None:
-        resource = Resource(server_url, pool_instance=pool)
+        resource = Resource(server_url)
     collected_urls = []
     page = category_prefix + category
     parameters = {}
@@ -136,7 +133,7 @@ def find_image_urls(category, server_url=BASE_SERVER_URL,
 
 def collect(collections, folder):
     """Collect categorized thumbnails from commons.mediawiki.org"""
-    resource = Resource(BASE_SERVER_URL, pool_instance=CONNECTION_POOL)
+    resource = Resource(BASE_SERVER_URL)
     for category_name, subcategories in collections:
         category_folder = os.path.join(folder, category_name)
         if not os.path.exists(category_folder):
@@ -153,8 +150,7 @@ def collect(collections, folder):
                     continue
                 print "downloading", url
                 with file(filepath, 'wb') as f:
-                    payload = Resource(
-                        url, pool_instance=CONNECTION_POOL).get().body
+                    payload = Resource(url).get().body
                     f.write(payload)
 
 

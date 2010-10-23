@@ -4,10 +4,21 @@ sparse represention.
 To run the experiment:
 
 1- Install the version 2.1 of the OpenCV_ (be sure to build the python bindings).
-   For ubuntu karmic and lucid it is recommended to use the `prebuilt packages`_
+   For ubuntu karmic and lucid it is recommended to use the `prebuilt
+   packages`_. For maverick, the distrib packages are up to date.
 
 .. _OpenCV: http://opencv.willowgarage.com/wiki/
 .. _`prebuild packages`: http://opencv.willowgarage.com/wiki/Ubuntu_Packages
+
+Also install restkit_, pyleargist_ and lxml_::
+
+   % sudo apt-get install python-lxml libfftw3-dev
+   % sudo pip install restkit
+   % sudo pip install pyleargist
+
+.. _restkit: http://github.com/benoitc/restkit/
+.. _pyleargist: http://github.com/benoitc/restkit/
+.. _lxml: http://codespeak.net/lxml/
 
 2- Download the funneled version of the Labeled Faces in the Wild
    dataset (a.k.a. LFW_) and untar it in the current folder (or use a symbolic
