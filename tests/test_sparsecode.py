@@ -47,8 +47,8 @@ def test_parallel_sparse_code():
     # lets take the first samples as dictionary
     D = x[:n_basis].T
 
-    encoded_1 = sparse_encode(D, x, max_features=3)
-    encoded_2 = SparseEncoder(D, max_features=3, n_cores=2)(x)
+    encoded_1 = sparse_encode(D, x )
+    encoded_2 = SparseEncoder(D, n_cores=2)(x)
 
     assert_almost_equal(encoded_1, encoded_2)
 
