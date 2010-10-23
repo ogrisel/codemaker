@@ -14,6 +14,7 @@ import shutil
 from multiprocessing import Pool
 from optparse import OptionParser
 from codemaker.features.image import pack
+from codemaker.utils import WorkerInterrupt
 
 RAW_DATA_FOLDER = "lfw_funneled"
 GRAY_DATA_FOLDER = "lfw_funneled_gray"
@@ -54,8 +55,6 @@ def detect_and_extract(input_img_path, output_img_path, cascade, w=64, h=64,
             sys.stdout.write(".")
             sys.stdout.flush()
 
-
-class WorkerInterrupt(Exception): pass
 
 def _job_fun(args):
     try:

@@ -2,6 +2,7 @@ from multiprocessing import Pool
 from multiprocessing import cpu_count
 import numpy as np
 from scikits.learn.glm import LassoCV
+from codemaker.utils import WorkerInterrupt
 
 def sparse_encode(D, data, callback=None, n_alphas=3):
     """Given dictionary D, find sparse encoding of vectors in data
@@ -23,10 +24,13 @@ def sparse_encode(D, data, callback=None, n_alphas=3):
     return encoded
 
 
-# ugly wrapper for multiprocessing
+# ugly wrapper for multiprocessing robustness
 def _job_fun(args):
-    D, x = args
-    return sparse_encode(D, x)
+    try:
+        D, x = args
+        return sparse_encode(D, x)
+    except KeyboardInterrupt:
+        raise WorkerInterrupt()
 
 
 class SparseEncoder(object):

@@ -11,6 +11,10 @@ Credit: excerpt from the http://deeplearning.net/tutorial
 
 import numpy
 
+class WorkerInterrupt(Exception):
+    """Utility exception to cleanly interrupt pooled processes"""
+    pass
+
 
 def scale_to_unit_interval(ndar,eps=1e-8):
     """ Scales all values in the ndarray ndar to be between 0 and 1 """

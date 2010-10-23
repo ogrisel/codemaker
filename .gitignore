@@ -10,4 +10,5 @@ examples/faces/lfw_funneled
 examples/faces/lfw_funneled_gray
 examples/faces/haarcascade_frontalface_*.xml
 examples/faces/*.npy.gz
+examples/faces/*.npy
 examples/faces/face_*.txt
